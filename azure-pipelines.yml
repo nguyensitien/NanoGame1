@@ -1,19 +1,39 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
-trigger:
-- master
-
 pool:
-  vmImage: 'Ubuntu-16.04'
-
+  name: Default
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- task: Bash@3
+  displayName: 'Bash Script'
+  inputs:
+    targetType: filePath
+    filePath: './$(Build.Repository.LocalPath)/ci/buildAndroid.sh'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+# - task: AppCenterDistribute@1
+#   displayName: 'Deploy Zombie_arm7.apk to App Center'
+#   inputs:
+#     serverEndpoint: AppCenter
+#     appSlug: legolasmuradin/ZombieAndroid
+#     appFile: '$(Build.ArtifactStagingDirectory)/Zombie.apk/Shadow Knight.armeabi-v7a.apk'
+#     symbolsIncludeParentDirectory: false
+#     releaseNotesOption: file
+#     releaseNotesFile: '$(Build.Repository.LocalPath)/changelog.txt'
+
+# - task: AppCenterDistribute@1
+#   displayName: 'Deploy Zombie_arm64.apk to App Center'
+#   inputs:
+#     serverEndpoint: AppCenter
+#     appSlug: legolasmuradin/ZombieAndroidArm64
+#     appFile: '$(Build.ArtifactStagingDirectory)/Zombie.apk/Shadow Knight.arm64-v8a.apk'
+#     symbolsIncludeParentDirectory: false
+#     releaseNotesOption: file
+#     releaseNotesFile: '$(Build.Repository.LocalPath)/changelog.txt'
+
+# - task: AppCenterDistribute@1
+#   displayName: 'Deploy Zombie_x86.apk to App Center'
+#   inputs:
+#     serverEndpoint: AppCenter
+#     appSlug: legolasmuradin/ZombieAndroidx86
+#     appFile: '$(Build.ArtifactStagingDirectory)/Zombie.apk/Shadow Knight.x86.apk'
+#     symbolsIncludeParentDirectory: false
+#     releaseNotesOption: file
+#     releaseNotesFile: '$(Build.Repository.LocalPath)/changelog.txt'
+
