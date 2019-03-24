@@ -33,7 +33,7 @@ public class GameplayController : Singleton<GameplayController>
     private int originSizeBoard;
     private void Start()
     {
-        Screen.SetResolution(720,960,false);
+        
         Init();
     }
     public void Init()
