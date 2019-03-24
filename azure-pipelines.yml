@@ -1,5 +1,5 @@
 pool:
-  name: Default
+  name: SelfPc
 steps:
 - task: Bash@3
   displayName: 'Bash Script'
