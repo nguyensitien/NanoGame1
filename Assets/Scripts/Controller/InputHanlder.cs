@@ -13,15 +13,17 @@ public class InputHanlder : MonoBehaviour
         {
             Vector3 posMouse = Input.mousePosition;
             posMouse = cam.ScreenToWorldPoint(posMouse);
-            //posMouse.x = 300;
-            //posMouse.y = 300;
             posMouse.z = 0;
-            Rect rect = GameplayController.Instance.GetRectBoard();
-            rect.width = Utilities.ConvertToLocal(rect.width);
-            rect.height = Utilities.ConvertToLocal(rect.height);
-            if (Utilities.CheckOverrideRectPoint(rect, posMouse))
+            if (Utilities.IsPointInPolygon(posMouse, GameplayController.Instance.GetPointsBoard()))
             {
+                posMouse.x = Mathf.Ceil(posMouse.x);
+                posMouse.y = Mathf.Ceil(posMouse.y);
+
                 GameplayController.Instance.CreateLine(posMouse);
+            }
+            else
+            {
+                //Debug.Log("khong vao:"+ posMouse);
             }
         }
     }

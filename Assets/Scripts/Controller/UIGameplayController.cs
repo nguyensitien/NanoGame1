@@ -21,7 +21,9 @@ public class UIGameplayController : Singleton<UIGameplayController> {
 
     public void UpdatePoint()
     {
-        txtPoint.text = GameplayController.Instance.pointCur + "/" + GameplayController.Instance.pointTarget;
+        float percent = (float)GameplayController.Instance.pointCur / (float)GameplayController.Instance.pointTarget;
+        //Debug.Log("percent:"+percent);
+        txtPoint.text = Mathf.Min(100,(int)(percent*100))+"%";
     }
     public void OnClickPlay()
     {
