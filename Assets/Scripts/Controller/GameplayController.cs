@@ -39,17 +39,15 @@ public class GameplayController : Singleton<GameplayController>
         Gizmos.DrawCube(tileHit.bounds.center,Vector2.one*10);
     }
     public List<ItemLineInfo> itemLineInfoList;
-
+    private Vector2[] points;
     public Vector2[] GetPointsBoard()
     {
-        Vector2[] points = new Vector2[itemLineInfoList.Count];
-        for (int i = 0; i < points.Length; i++) {
-            points[i] = itemLineInfoList[i].point;
-        }
+        
         return points;
     }
     private void Start()
     {
+       
         itemMaskScript = itemMask.GetComponent<SpriteMask>();
         itemLineInfoList = new List<ItemLineInfo>();
         foreach (var pos in tileMap.cellBounds.allPositionsWithin)
@@ -82,14 +80,22 @@ public class GameplayController : Singleton<GameplayController>
                 }
             }
         }
+        ItemLineInfo item = itemLineInfoList[4];
+        itemLineInfoList.RemoveAt(4);
+        itemLineInfoList.Add(item);
         itemLineInfoList = SortPoints(itemLineInfoList);
-        //int length = itemLineInfoList.Count;
-        //itemLineInfoList.Add(itemLineInfoList[0]);
-        //for (int i = 0; i < length; i++)
-        //{
-        //    Debug.DrawLine(itemLineInfoList[i].point, itemLineInfoList[i+1].point,Color.red,100000);
-        //}
+       
         Init();
+    }
+
+    private void InitPoints()
+    {
+        int length = itemLineInfoList.Count;
+        points = new Vector2[length];
+        for (int i = 0; i < length; i++)
+        {
+            points[i] = itemLineInfoList[i].point;
+        }
     }
     public void Init()
     {
@@ -97,8 +103,9 @@ public class GameplayController : Singleton<GameplayController>
         canCreateLine = false;
         typeLineCur = TypeLineFind.vertical;
         ShowTypeLinePreview();
-
-        triangle = new Triangulator(GetPointsBoard());
+        InitPoints();
+        triangle = new Triangulator(points);
+        colors = new Color[triangle.width*triangle.height];
         //InitTriangle();
         originSizeBoard = (int)triangle.Area();
         pointCur = 0;
@@ -110,10 +117,12 @@ public class GameplayController : Singleton<GameplayController>
     }
     private Triangulator triangle;
     public SpriteRenderer spriteRenderern;
+    Color[] colors;
     private void InitTriangle()
     {
-        
-        triangle = new Triangulator(GetPointsBoard());
+
+        InitPoints();
+        triangle = new Triangulator(points);
 
         //test
         
@@ -125,22 +134,67 @@ public class GameplayController : Singleton<GameplayController>
         int height = (int)(maxY - minY);
         Vector2 center = new Vector2((maxX + minX) / 2, (maxY + minY) / 2);
         Texture2D tex2D = new Texture2D(width,height);
-        for (int i = 0; i < width; i++)
+        //Vector2 vec = Vector2.zero;
+        //Color color = Color.white;
+        //for (int y = 0; y < height; y++)
+        //{
+        //    for (int x = 0; x < width; x++)
+        //    {
+        //        vec.x = x + minX;
+        //        vec.y = y + minY;
+        //        if (Utilities.IsPointInPolygon(vec, points))
+        //        {
+        //            color.a = 1;
+        //        }
+        //        else
+        //        {
+        //            color.a = 0;
+        //        }
+        //        colors[y * width + x] = color;
+        //    }
+
+        //}
+        //tex2D.SetPixels(0, 0, width, height, colors);
+        Sprite sprite = Sprite.Create(tex2D, new Rect(0, 0, width, height), Vector2.one * 0.5f);
+        ushort[] tris = new ushort[triangle.Triangulate().Length];
+        int[] trisss = triangle.Triangulate();
+        Vector2[] verticles = new Vector2[points.Length];
+        Vector2 ori = new Vector2(minX, minY);
+        //Debug.Log("verticles---------------------:"+points.Length+" width:"+width+" height:"+height+"minX:"+minX+" maxX:"+maxX+" minY:"+minY+" maxY:"+maxY);
+        for (int i = 0; i < points.Length; i++)
         {
-            for (int j = 0; j < height; j++)
-            {
-                Color color = Color.white;
-                if (!Utilities.IsPointInPolygon(new Vector2(i+minX, j+minY), GetPointsBoard())) {
-                    color.a = 0;
-                }
-                tex2D.SetPixel(i,j, color);
-            }
+            verticles[i] = (points[i] - ori);
+            //Debug.Log(i + ":" + verticles[i]+":"+points[i]);
         }
-        Sprite sprite = Sprite.Create(tex2D, new Rect(0,0,width,height),Vector2.one*0.5f);
+        //Debug.Log("triangles------------------------:"+tris.Length);
+        for (int i = 0; i < tris.Length; i++)
+        {
+            tris[i] = (ushort)(trisss[i]);
+            //Debug.Log(i + ":" + tris[i]);
+        }
+        for (int i = 0; i < tris.Length; i += 3)
+        {
+            //Debug.Log("draw:" + i);
+            Debug.DrawLine(points[tris[i]],points[tris[i +1]], Color.red,10);
+            Debug.DrawLine(points[tris[i +1]],points[tris[i +2]],Color.red,10);
+            Debug.DrawLine(points[tris[i +2]], points[tris[i]], Color.red,10);
+        }
+        //Debug.Log("verticles:" + verticles.Length+ " tris" + tris.Length+" minX:"+minX+" minY:"+minY+" width:"+width+" height:"+height);
+        sprite.OverrideGeometry(verticles, tris);
+        //sprite.OverrideGeometry(sprite.vertices, sprite.triangles);
         itemMaskScript.sprite = sprite;
         itemMaskScript.transform.position = center;
         //spriteRenderern.sprite = sprite;
         //spriteRenderern.transform.position = center;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        for (int i = 0; i < points.Length; i++)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawCube(points[i], Vector2.one * 10);
+        }
     }
 
     public void ContinueGame()
@@ -337,7 +391,7 @@ public class GameplayController : Singleton<GameplayController>
                 }
             }
             itemLineInfoList = SortPoints(itemLineInfoList);
-            itemLineInfoList.RemoveAt(itemLineInfoList.Count-1);
+            //itemLineInfoList.RemoveAt(itemLineInfoList.Count-1);
             //Debug.Log("----After Sort-----");
             //for (int i = 0; i < itemLineInfoList.Count; i++)
             //{
@@ -392,12 +446,14 @@ public class GameplayController : Singleton<GameplayController>
                 //itemLineList.Remove(itemLineCur);
                 if (itemLineCur.point == result[0].point) {
                     //Debug.Log("end o day ha 1");
+                    result.RemoveAt(result.Count - 1);
                     return result;
                 }
             }
             else
             {
                 //Debug.Log("end o day ha");
+                result.RemoveAt(result.Count - 1);
                 return result;
             }
             //return null;
@@ -408,12 +464,17 @@ public class GameplayController : Singleton<GameplayController>
         //    Debug.Log(result[i].point+":"+result[i].typeLine);
         //}
         //Debug.Log("end o day ha 2");
+        result.RemoveAt(result.Count - 1);
         return result;
     }
 
     private ItemLineInfo FindPointNextValid(ItemLineInfo itemLineInfoCur,List<ItemLineInfo> itemLineList,List<ItemLineInfo> result)
     {
         TypeLineFind typeLineFind = TypeLineFind.horizontal;
+        if (itemLineInfoCur.typeLine == TypeLine.line_bot_right || itemLineInfoCur.typeLine == TypeLine.line_top_left)
+        {
+            typeLineFind = TypeLineFind.vertical;
+        }
         if (result.Count > 1)
         {
             TypeLineFind typeLineFindPre = result[result.Count - 2].typeLineFind;
