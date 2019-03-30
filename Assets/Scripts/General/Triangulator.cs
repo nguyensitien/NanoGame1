@@ -5,7 +5,7 @@ public class Triangulator
 {
     private List<Vector2> m_points = new List<Vector2>();
 
-    public float minX, maxX, minY, maxY;
+    public int minX, maxX, minY, maxY,width,height;
 
     public Triangulator(Vector2[] points)
     {
@@ -15,18 +15,21 @@ public class Triangulator
 
     private void GetMinMax()
     {
-        minX = m_points[0].x;
-        maxX = m_points[0].x;
-        minY = m_points[0].y;
-        maxY = m_points[0].y;
+        minX = (int)m_points[0].x;
+        maxX = (int)m_points[0].x;
+        minY = (int)m_points[0].y;
+        maxY = (int)m_points[0].y;
 
         for (int i = 1; i < m_points.Count; i++)
         {
-            if (m_points[i].x < minX) minX = m_points[i].x;
-            if (m_points[i].x > maxX) maxX = m_points[i].x;
-            if (m_points[i].y < minY) minY = m_points[i].y;
-            if (m_points[i].y > maxY) maxY = m_points[i].y;
+            if (m_points[i].x < minX) minX = (int)m_points[i].x;
+            if (m_points[i].x > maxX) maxX = (int)m_points[i].x;
+            if (m_points[i].y < minY) minY = (int)m_points[i].y;
+            if (m_points[i].y > maxY) maxY = (int)m_points[i].y;
         }
+
+        width = (maxX - minX);
+        height = (maxY - minY);
     }
 
     public int[] Triangulate()
