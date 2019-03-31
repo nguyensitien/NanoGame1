@@ -11,11 +11,13 @@ public class ItemBall : MonoBehaviour
     private Vector2 dirMove = Vector2.zero;
     private Vector2 posCur;
     private CircleCollider2D circleHit;
+    private float radius;
     private float size;
     private void Start()
     {
         circleHit = GetComponent<CircleCollider2D>();
         size = transform.localScale.x;
+        radius = circleHit.radius;
     }
     public void Init()
     {
@@ -33,17 +35,17 @@ public class ItemBall : MonoBehaviour
     
     private Vector2 posOld;
     private float deltaTime;
-    private void Update()
+    private void FixedUpdate()
     {
         if (GameplayController.Instance.isEndGame) return;
         if (isRolling)
         {
-            deltaTime = Time.deltaTime;
+            deltaTime = Time.fixedDeltaTime;
             posOld = posCur = transform.localPosition;
             posCur += dirMove * speed * deltaTime;
 
             dist = (posCur - posOld).magnitude;
-            RaycastHit2D hit = Physics2D.CircleCast(posOld, circleHit.radius * size, dirMove, dist, layerMask);
+            RaycastHit2D hit = Physics2D.CircleCast(posOld, radius * size, dirMove, dist, layerMask);
             if (hit.collider != null)
             {
                 Vector3 reflectVec = Vector3.Reflect(dirMove, hit.normal);
@@ -54,11 +56,11 @@ public class ItemBall : MonoBehaviour
                     //doi huong x
                     if (dirMove.x > 0)
                     {
-                        posCur.x -= circleHit.radius * size;
+                        posCur.x -= radius * size;
                     }
                     else
                     {
-                        posCur.x += circleHit.radius * size;
+                        posCur.x += radius * size;
                     }
                 }
                 if (dirMove.y * reflectVec.y < 0)
@@ -66,11 +68,11 @@ public class ItemBall : MonoBehaviour
                     //doi huong y
                     if (dirMove.y > 0)
                     {
-                        posCur.y -= circleHit.radius * size;
+                        posCur.y -= radius * size;
                     }
                     else
                     {
-                        posCur.y += circleHit.radius * size;
+                        posCur.y += radius * size;
                     }
                 }
                 dirMove = reflectVec;

@@ -14,9 +14,9 @@ public class UILoginController : Singleton<UILoginController> {
     private GameObject logoGame;
     private void Start()
     {
-        Screen.SetResolution(1280,1920,true);
+        Screen.SetResolution(1280,1920,false);
         Application.targetFrameRate = 60;
-        QualitySettings.vSyncCount = 4;
+        QualitySettings.vSyncCount = 0;
 
         for (int i = 0; i < splashList.Length; i++)
         {

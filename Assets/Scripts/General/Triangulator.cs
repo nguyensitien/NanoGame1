@@ -5,7 +5,7 @@ public class Triangulator
 {
     private List<Vector2> m_points = new List<Vector2>();
 
-    public int minX, maxX, minY, maxY,width,height;
+    public int minX, maxX, minY, maxY,width,height,centerX,centerY;
 
     public Triangulator(Vector2[] points)
     {
@@ -19,7 +19,7 @@ public class Triangulator
         maxX = (int)m_points[0].x;
         minY = (int)m_points[0].y;
         maxY = (int)m_points[0].y;
-
+        
         for (int i = 1; i < m_points.Count; i++)
         {
             if (m_points[i].x < minX) minX = (int)m_points[i].x;
@@ -27,7 +27,8 @@ public class Triangulator
             if (m_points[i].y < minY) minY = (int)m_points[i].y;
             if (m_points[i].y > maxY) maxY = (int)m_points[i].y;
         }
-
+        centerX = (maxX + minX) / 2;
+        centerY = (maxY + minY) / 2;
         width = (maxX - minX);
         height = (maxY - minY);
     }
