@@ -30,14 +30,10 @@ public class GameplayController : Singleton<GameplayController>
     public int pointCur, pointTarget;
 
     private int originSizeBoard;
-    public TilemapCollider2D tileHit;
+    [HideInInspector]
     public Tilemap tileMap;
     private SpriteMask itemMaskScript;
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.green;
-        Gizmos.DrawCube(tileHit.bounds.center,Vector2.one*10);
-    }
+    
     public List<ItemLineInfo> itemLineInfoList;
     private Vector2[] points;
     public Vector2[] GetPointsBoard()
@@ -47,7 +43,9 @@ public class GameplayController : Singleton<GameplayController>
     }
     private void Start()
     {
-       
+        GameObject nodeMap = Instantiate(ObjectDataController.Instance.nodeMapFighting);
+        nodeMap.transform.localPosition = Vector3.zero;
+        tileMap = nodeMap.transform.GetChild(0).GetComponent<Tilemap>();
         itemMaskScript = itemMask.GetComponent<SpriteMask>();
         itemLineInfoList = new List<ItemLineInfo>();
         foreach (var pos in tileMap.cellBounds.allPositionsWithin)
@@ -200,7 +198,7 @@ public class GameplayController : Singleton<GameplayController>
     public void ContinueGame()
     {
         Debug.Log("ContinueGame");
-        SceneManager.LoadScene("Gameplay");
+        SceneManager.LoadScene("Lobby");
     }
 
     public void TryAgain()
@@ -211,12 +209,22 @@ public class GameplayController : Singleton<GameplayController>
 
     public void PlayGame()
     {
+
         StartCoroutine(PlayGameDelay());
     }
 
     public void EndGame(bool isWin)
     {
         Debug.Log("EndGame:"+isWin);
+        if (isWin)
+        {
+            DataController.Instance.UserDataNodeList[ObjectDataController.Instance.idNodeFighting - 1].numStar = 3;
+            if (DataController.Instance.UserData.idNodeHighest == ObjectDataController.Instance.idNodeFighting)
+            {
+                DataController.Instance.UserData.idNodeHighest += 1;
+            }
+
+        }
         isEndGame = true;
         UIGameplayController.Instance.EndGame(isWin);
     }
@@ -224,10 +232,13 @@ public class GameplayController : Singleton<GameplayController>
     private IEnumerator PlayGameDelay()
     {
         canCreateLine = false;
-        yield return new WaitForSeconds(0.5f);
+        itemBall.Init();
+        yield return null;
+        yield return null;
+        yield return null;
         isEndGame = false;
         canCreateLine = true;
-        //itemBall.Init();
+        
 
     }
     
