@@ -28,7 +28,8 @@ public class GameplayController : Singleton<GameplayController>
     public bool isEndGame;
     [HideInInspector]
     public int pointCur, pointTarget;
-
+    [SerializeField]
+    private Transform bgBoard = null;
     private int originSizeBoard;
     [HideInInspector]
     public Tilemap tileMap;
@@ -95,6 +96,8 @@ public class GameplayController : Singleton<GameplayController>
             points[i] = itemLineInfoList[i].point;
         }
     }
+
+    
     public void Init()
     {
         isEndGame = false;
@@ -103,6 +106,8 @@ public class GameplayController : Singleton<GameplayController>
         ShowTypeLinePreview();
         InitPoints();
         triangle = new Triangulator(points);
+        bgBoard.localPosition = new Vector2(triangle.centerX,triangle.centerY);
+        bgBoard.localScale = new Vector2(triangle.width/100,triangle.height/100);
         colors = new Color[triangle.width*triangle.height];
         //InitTriangle();
         originSizeBoard = (int)triangle.Area();

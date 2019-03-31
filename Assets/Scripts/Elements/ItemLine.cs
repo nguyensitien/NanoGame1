@@ -17,6 +17,8 @@ public class ItemLine : MonoBehaviour
     }
     [HideInInspector]
     public Vector2 posTarget;
+    [SerializeField]
+    private LayerMask layerMask;
     public void Init(TypeLineFind typeLine,int index,bool isSketching)
     {
         this.typeLine = typeLine;
@@ -26,14 +28,14 @@ public class ItemLine : MonoBehaviour
         if (typeLine == TypeLineFind.horizontal)
         {
             scaleCur = new Vector2(0, 1);
-            hit = Physics2D.Linecast(transform.position, (Vector2)transform.position + Vector2.right * dir * 20000);
+            hit = Physics2D.Linecast(transform.position, (Vector2)transform.position + Vector2.right * dir * 20000, layerMask);
             posTarget = hit.point;
             posTarget.x += dir * GameplayController.Instance.sizeLine.x/2;
         }
         else
         {
             scaleCur = new Vector2(1,0);
-            hit = Physics2D.Linecast(transform.position, (Vector2)transform.position + Vector2.up * dir * 20000);
+            hit = Physics2D.Linecast(transform.position, (Vector2)transform.position + Vector2.up * dir * 20000, layerMask);
             posTarget = hit.point;
             posTarget.y += dir * GameplayController.Instance.sizeLine.x/2;
         }
