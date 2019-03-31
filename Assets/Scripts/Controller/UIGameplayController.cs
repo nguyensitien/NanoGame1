@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class UIGameplayController : Singleton<UIGameplayController> {
@@ -29,6 +30,11 @@ public class UIGameplayController : Singleton<UIGameplayController> {
     {
         btnPlay.gameObject.SetActive(false);
         GameplayController.Instance.PlayGame();
+    }
+
+    public void OnClickBack()
+    {
+        SceneManager.LoadScene("Lobby");
     }
 
     public void ShowTabToPlay()
