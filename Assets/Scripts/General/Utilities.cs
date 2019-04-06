@@ -5,6 +5,7 @@ using UnityEngine;
 
 public static class Utilities 
 {
+    public static float SIZE = 48;
     public static float GetRatioDevice()
     {
         return (float)Screen.height / (float)Screen.width;

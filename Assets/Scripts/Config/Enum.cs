@@ -11,8 +11,10 @@
 public enum TypeLineFind
 {
     vertical,
-    horizontal
+    horizontal,
+
 }
+
 
 public enum TypeRemoveLine
 {

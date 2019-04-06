@@ -110,17 +110,15 @@ TextureImporter:
       - {x: -50, y: -50}
       - {x: 50, y: -50}
       - {x: 50, y: 50}
-      - {x: 50, y: 50}
-      - {x: 50, y: 50}
     physicsShape:
-    - - {x: -5, y: 50}
-      - {x: -5, y: -5}
+    - - {x: -5, y: -5}
       - {x: 50, y: -5}
       - {x: 50, y: 5}
       - {x: 5, y: 5}
       - {x: 5, y: 50}
+      - {x: -5, y: 50}
     bones: []
-    spriteID: 14ad5840cfa39ea4a92f3e4a6ebe2862
+    spriteID: 37970f86af4edab4d84f7bc08b8ec093
     vertices: []
     indices: 
     edges: []

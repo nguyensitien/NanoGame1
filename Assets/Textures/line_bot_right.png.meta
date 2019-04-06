@@ -106,12 +106,10 @@ TextureImporter:
     serializedVersion: 2
     sprites: []
     outline:
-    - - {x: -50, y: 50}
-      - {x: -50, y: -50}
+    - - {x: 50, y: 50}
+      - {x: -50, y: 50}
       - {x: -50, y: -50}
       - {x: 50, y: -50}
-      - {x: 50, y: -50}
-      - {x: 50, y: 50}
     physicsShape:
     - - {x: -5, y: -50}
       - {x: 5, y: -50}
@@ -120,7 +118,7 @@ TextureImporter:
       - {x: 50, y: 5}
       - {x: -5, y: 5}
     bones: []
-    spriteID: 2d71bd1c4c48f0d48ae30d8669f7a00a
+    spriteID: 6ca844fd91a6ce34a899c6a198730b1a
     vertices: []
     indices: 
     edges: []
