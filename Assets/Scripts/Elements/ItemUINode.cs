@@ -6,18 +6,22 @@ using UnityEngine.UI;
 
 public class ItemUINode : MonoBehaviour {
     [SerializeField]
-    private Color colorUnlock, colorLock;
+    private Sprite starUnlock = null, starLock = null;
+
+    [SerializeField]
+    private Image imgBg = null;
+    [SerializeField]
+    private Sprite spritesBgLock = null,spriteBgUnlock = null,spriteBgChosing = null;
     [SerializeField]
     private Text txtLv = null;
-
+    [SerializeField]
+    private Color colorLvLock , colorLvUnlock , colorLvChosing ;
     [SerializeField]
     private Image[] starList;
 
     [SerializeField]
     private GameObject starTran = null;
 
-    [SerializeField]
-    private CanvasGroup canvasGroup = null;
     private int idNode;
     private bool isUnlocked;
     public void Init(int idNode)
@@ -33,11 +37,22 @@ public class ItemUINode : MonoBehaviour {
         {
             //da danh roi hoac dang danh
             isUnlocked = true;
-            canvasGroup.alpha = 1;
+            if(idNode == DataController.Instance.UserData.idNodeHighest)
+            {
+                imgBg.sprite = spriteBgChosing;
+                txtLv.color = colorLvChosing;
+            }
+            else
+            {
+                imgBg.sprite = spriteBgUnlock;
+                txtLv.color = colorLvUnlock;
+
+            }
             starTran.SetActive(true);
             for (int i = 0; i < starList.Length; i++)
             {
-                starList[i].color = colorLock;
+                starList[i].sprite = starLock;
+                starList[i].SetNativeSize();
             }
             List<UserDataNode> list = DataController.Instance.UserDataNodeList;
             if (idNode <= list.Count)
@@ -45,16 +60,19 @@ public class ItemUINode : MonoBehaviour {
                 int length = list[idNode - 1].numStar;
                 for (int i = 0; i < length; i++)
                 {
-                    starList[i].color = colorUnlock;
+                    starList[i].sprite = starUnlock;
+                    starList[i].SetNativeSize();
                 }
             }
         }
+
         else
         {
             //chua danh
             isUnlocked = false;
-            canvasGroup.alpha = 0.3f;
             starTran.SetActive(false);
+            imgBg.sprite = spritesBgLock;
+            txtLv.color = colorLvLock;
         }
     }
 
