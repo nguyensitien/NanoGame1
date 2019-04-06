@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class UILobbyController : MonoBehaviour {
 
@@ -9,6 +10,9 @@ public class UILobbyController : MonoBehaviour {
 
     [SerializeField]
     private GameObject itemUiNodePrefab = null;
+
+    [SerializeField]
+    private RectTransform logoScreen = null, campaignScreen = null;
 
     private void Start()
     {
@@ -34,5 +38,22 @@ public class UILobbyController : MonoBehaviour {
             ItemUINode itemUINode = obj.GetComponent<ItemUINode>();
             itemUINode.Init(idNode);
         }
+    }
+
+    public void OnBtnLogin()
+    {
+        SceneManager.LoadScene("Login");
+    }
+
+    public void GotoLogoScreen()
+    {
+        logoScreen.gameObject.SetActive(true);
+        campaignScreen.gameObject.SetActive(false);
+    }
+
+    public void GotoCampaignScreen()
+    {
+        campaignScreen.gameObject.SetActive(true);
+        logoScreen.gameObject.SetActive(false);
     }
 }

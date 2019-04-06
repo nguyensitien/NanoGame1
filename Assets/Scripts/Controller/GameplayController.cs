@@ -123,13 +123,13 @@ public class GameplayController : Singleton<GameplayController>
             if (item1.typeLineFind == TypeLineFind.vertical)
             {
                 pos.y = (item1.point.y + item2.point.y) / 2.0f;
-                Vector2 size = new Vector2(1, Mathf.Abs((item2.point.y - item1.point.y)) / 100.0f - 0.48f);
+                Vector2 size = new Vector2(1, Mathf.Abs((item2.point.y - item1.point.y)) / 100.0f - 0.477f);
                 result.Add(new ItemLineInfo(pos,TypeLine.line_vertical,size));
             }
             else
             {
                 pos.x = (item1.point.x + item2.point.x) / 2.0f;
-                Vector2 size = new Vector2(Mathf.Abs((item2.point.x - item1.point.x)) / 100.0f - 0.48f, 1);
+                Vector2 size = new Vector2(Mathf.Abs((item2.point.x - item1.point.x)) / 100.0f - 0.477f, 1);
                 result.Add(new ItemLineInfo(pos,TypeLine.line_horizontal,size));
             }
         }
@@ -189,6 +189,7 @@ public class GameplayController : Singleton<GameplayController>
             GameObject itemLineObj = SmartPool.Instance.Spawn(linePrefab[(int)itemLineInfo.typeLine],Vector3.zero,Quaternion.identity);
             ItemLine itemLineAngle = itemLineObj.GetComponent<ItemLine>();
             itemLineAngle.InitTypeLine(itemLineInfo.typeLine);
+            itemLineObj.transform.SetParent(boardTran);
             itemLineObj.transform.localScale = itemLineInfo.size;
             itemLineObj.transform.localPosition = itemLineInfo.point;
            
@@ -313,13 +314,25 @@ public class GameplayController : Singleton<GameplayController>
 
     public void PlayGame()
     {
-
+        //DataController.Instance.UserDataNodeList[ObjectDataController.Instance.idNodeFighting - 1].numStar = 3;
+        //EndGame(true);
         StartCoroutine(PlayGameDelay());
     }
 
     public void EndGame(bool isWin)
     {
-        Debug.Log("EndGame:"+isWin);
+        StartCoroutine(DelayEndGame(isWin));
+    }
+
+    private IEnumerator DelayEndGame(bool isWin)
+    {
+        isEndGame = true;
+        yield return new WaitForSeconds(0.5f);
+        Debug.Log("vao day cai ne:"+ itemSkechingList.Count);
+        for (int i = 0; i < itemSkechingList.Count; i++)
+        {
+            itemSkechingList[i].gameObject.SetActive(false);
+        }
         if (isWin)
         {
             DataController.Instance.UserDataNodeList[ObjectDataController.Instance.idNodeFighting - 1].numStar = 3;
@@ -329,14 +342,15 @@ public class GameplayController : Singleton<GameplayController>
             }
 
         }
-        isEndGame = true;
+        boardTran.gameObject.SetActive(false);
+        itemBall.gameObject.SetActive(false);
         UIGameplayController.Instance.EndGame(isWin);
     }
 
     private IEnumerator PlayGameDelay()
     {
         canCreateLine = false;
-        //itemBall.Init();
+        itemBall.Init();
         yield return null;
         yield return null;
         yield return null;
@@ -565,6 +579,10 @@ public class GameplayController : Singleton<GameplayController>
                     //}
                 }
                 break;
+        }
+        for (int i = 0; i < itemLineSketchingList.Count; i++)
+        {
+            SmartPool.Instance.Despawn(itemLineSketchingList[i].gameObject);
         }
         itemLineSketchingList = new List<ItemLine>();
         pointsComplete = new List<Vector2>();

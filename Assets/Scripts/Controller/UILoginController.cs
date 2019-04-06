@@ -14,7 +14,7 @@ public class UILoginController : Singleton<UILoginController> {
     private GameObject logoGame;
     private void Start()
     {
-        Screen.SetResolution(1280,1920,false);
+        //Screen.SetResolution(1280,1920,false);
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
 
@@ -26,8 +26,7 @@ public class UILoginController : Singleton<UILoginController> {
                 DOTween.To(() => splashList[index].alpha, (x) => splashList[index].alpha = x, 0, timeTween).SetEase(Ease.Linear).OnComplete(()=> {
                     if (index == splashList.Length - 1)
                     {
-                        Debug.Log("Complete");
-                        logoGame.SetActive(true);
+                        SceneManager.LoadScene("Lobby");
                     }
                 });
             });
