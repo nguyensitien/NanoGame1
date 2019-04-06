@@ -24,11 +24,15 @@ public class BGScaler : MonoBehaviour
 
     void SetScaleFollowScreenSize()
     {
-        float ratio = (Utilities.SIZE_WIDTH * Screen.height) / (Utilities.SIZE_HEIGHT * Screen.width);
+
+        float ratio = (Utilities.SIZE_HEIGHT * Screen.width) / (Utilities.SIZE_WIDTH * Screen.height);
         var sizeScene = Utilities.GetScreenDimension();
-        if (sizeScene >= 2f || Utilities.SIZE_WIDTH < Screen.width)
+
+        if (sizeScene >= 2f || Utilities.SIZE_HEIGHT < Screen.height)
             ratio = 1.0F / ratio;
+
         transform.localScale = Vector3.one * ratio;
+
     }
     
 }
