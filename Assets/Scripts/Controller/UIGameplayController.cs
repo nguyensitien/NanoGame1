@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using DG.Tweening;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,11 +14,24 @@ public class UIGameplayController : Singleton<UIGameplayController> {
     private UIPopupWinController popupWin;
     [SerializeField]
     private UIPopupLoseController popupLose;
+    [SerializeField]
+    private RectTransform boxTop = null;
 
     public void EndGame(bool isWin)
     {
-        if (isWin) popupWin.Show();
-        else popupLose.Show();
+        boxTop.DOAnchorPosY(300, 1).SetEase(Ease.InOutBack).OnComplete(()=> {
+            if (isWin)
+            {
+
+                popupWin.Show();
+                popupWin.Init(DataController.Instance.UserDataNodeList[ObjectDataController.Instance.idNodeFighting - 1].numStar);
+            }
+            else
+            {
+                popupLose.Show();
+            }
+        });
+        
     }
 
     public void UpdatePoint()

@@ -7,6 +7,7 @@ using UnityEngine.Tilemaps;
 
 public class GameplayController : Singleton<GameplayController>
 {
+    public Action<TypeLine, Vector2> actionRemoveItemLine;
     public Vector2 sizeLine;
     [SerializeField]
     private Vector2 sizeBoard;
@@ -16,12 +17,13 @@ public class GameplayController : Singleton<GameplayController>
     private Transform boardTran = null;
     [SerializeField]
     private Transform itemMask = null;
-    [SerializeField]
-    private TypeLineFind typeLineCur;
+    public TypeLineFind typeLineCur;
     [SerializeField]
     private GameObject[] typeLinePreview;
     [SerializeField]
     private GameObject[] linePrefab;
+    [SerializeField]
+    private GameObject[] lineSketchPrefab;
     [HideInInspector]
     public bool canCreateLine;
     [HideInInspector]
@@ -49,6 +51,8 @@ public class GameplayController : Singleton<GameplayController>
         tileMap = nodeMap.transform.GetChild(0).GetComponent<Tilemap>();
         itemMaskScript = itemMask.GetComponent<SpriteMask>();
         itemLineInfoList = new List<ItemLineInfo>();
+        itemLineInfoAllOld = new List<ItemLineInfo>();
+        itemLineAllInfoList = new List<ItemLineInfo>();
         foreach (var pos in tileMap.cellBounds.allPositionsWithin)
         {
             Sprite sprite = tileMap.GetSprite(pos);
@@ -59,29 +63,27 @@ public class GameplayController : Singleton<GameplayController>
                 
                 if (sprite.name == TypeLine.line_bot_left.ToString())
                 {
-                    ItemLineInfo itemLine = new ItemLineInfo(p,TypeLine.line_bot_left);
+                    ItemLineInfo itemLine = new ItemLineInfo(p,TypeLine.line_bot_left,Vector2.one);
                     itemLineInfoList.Add(itemLine);
                 }
                 else if (sprite.name == TypeLine.line_bot_right.ToString())
                 {
-                    ItemLineInfo itemLine = new ItemLineInfo(p, TypeLine.line_bot_right);
+                    ItemLineInfo itemLine = new ItemLineInfo(p, TypeLine.line_bot_right, Vector2.one);
                     itemLineInfoList.Add(itemLine);
                 }
                 else if (sprite.name == TypeLine.line_top_left.ToString())
                 {
-                    ItemLineInfo itemLine = new ItemLineInfo(p, TypeLine.line_top_left);
+                    ItemLineInfo itemLine = new ItemLineInfo(p, TypeLine.line_top_left, Vector2.one);
                     itemLineInfoList.Add(itemLine);
                 }
                 else if (sprite.name == TypeLine.line_top_right.ToString())
                 {
-                    ItemLineInfo itemLine = new ItemLineInfo(p, TypeLine.line_top_right);
+                    ItemLineInfo itemLine = new ItemLineInfo(p, TypeLine.line_top_right, Vector2.one);
                     itemLineInfoList.Add(itemLine);
                 }
             }
         }
-        ItemLineInfo item = itemLineInfoList[4];
-        itemLineInfoList.RemoveAt(4);
-        itemLineInfoList.Add(item);
+       
         itemLineInfoList = SortPoints(itemLineInfoList);
        
         Init();
@@ -97,12 +99,112 @@ public class GameplayController : Singleton<GameplayController>
         }
     }
 
+    private List<ItemLineInfo> itemLineAllInfoList;
+
+    private List<ItemLineInfo> GetItemLineAllInfo(List<ItemLineInfo> list)
+    {
+        List<ItemLineInfo> result = new List<ItemLineInfo>();
+        for (int i = 0; i < list.Count; i++)
+        {
+            result.Add(list[i]);
+            ItemLineInfo item1;
+            ItemLineInfo item2;
+            if (i < itemLineInfoList.Count - 1)
+            {
+                item1 = list[i];
+                item2 = list[i + 1];
+            }
+            else
+            {
+                item1 = list[i];
+                item2 = list[0];
+            }
+            Vector2 pos = item1.point;
+            if (item1.typeLineFind == TypeLineFind.vertical)
+            {
+                pos.y = (item1.point.y + item2.point.y) / 2.0f;
+                Vector2 size = new Vector2(1, Mathf.Abs((item2.point.y - item1.point.y)) / 100.0f - 0.477f);
+                result.Add(new ItemLineInfo(pos,TypeLine.line_vertical,size));
+            }
+            else
+            {
+                pos.x = (item1.point.x + item2.point.x) / 2.0f;
+                Vector2 size = new Vector2(Mathf.Abs((item2.point.x - item1.point.x)) / 100.0f - 0.477f, 1);
+                result.Add(new ItemLineInfo(pos,TypeLine.line_horizontal,size));
+            }
+        }
+        return result;
+    }
+
+    private void RemoveSketchingLine()
+    {
+        for (int i = 0; i < itemSkechingList.Count; i++)
+        {
+            SmartPool.Instance.Despawn(itemSkechingList[i]);
+        }
+        itemSkechingList = new List<GameObject>();
+    }
+
+    private List<ItemLineInfo> GetItemOld(List<ItemLineInfo> itemLineInfoAll)
+    {
+        List<ItemLineInfo> itemOldListTmp = new List<ItemLineInfo>(itemLineInfoAllOld);
+        for (int i = 0; i < itemLineInfoAllOld.Count; i++)
+        {
+            for (int j = 0; j < itemLineInfoAll.Count; j++)
+            {
+                if (itemLineInfoAllOld[i].typeLine == itemLineInfoAll[j].typeLine && itemLineInfoAllOld[i].point == itemLineInfoAll[j].point)
+                {
+                    itemOldListTmp.Remove(itemLineInfoAll[j]);
+                }
+            }
+        }
+        return itemOldListTmp;
+    }
+    private List<ItemLineInfo> GetItemNew(List<ItemLineInfo> itemLineInfoAll)
+    {
+        List<ItemLineInfo> itemOldListTmp = new List<ItemLineInfo>(itemLineInfoAll);
+        for (int i = 0; i < itemLineInfoAll.Count; i++)
+        {
+            for (int j = 0; j < itemLineInfoAllOld.Count; j++)
+            {
+                if (itemLineInfoAll[i].typeLine == itemLineInfoAllOld[j].typeLine && itemLineInfoAll[i].point == itemLineInfoAllOld[j].point)
+                {
+                    itemOldListTmp.Remove(itemLineInfoAllOld[j]);
+                }
+            }
+        }
+        return itemOldListTmp;
+    }
+
+    private void CreateBoard()
+    {
+        //tileMap.transform.parent.gameObject.SetActive(false);
+        RemoveSketchingLine();
+        List<ItemLineInfo> itemLineInfoAll = GetItemLineAllInfo(itemLineInfoList);
+        RemoveLineOld(itemLineInfoAll);
+        List<ItemLineInfo> itemLineInfoAllNew = GetItemNew(itemLineInfoAll);
+        for (int i = 0; i < itemLineInfoAllNew.Count; i++)
+        {
+            ItemLineInfo itemLineInfo = itemLineInfoAllNew[i];
+            GameObject itemLineObj = SmartPool.Instance.Spawn(linePrefab[(int)itemLineInfo.typeLine],Vector3.zero,Quaternion.identity);
+            ItemLine itemLineAngle = itemLineObj.GetComponent<ItemLine>();
+            itemLineAngle.InitTypeLine(itemLineInfo.typeLine);
+            itemLineObj.transform.SetParent(boardTran);
+            itemLineObj.transform.localScale = itemLineInfo.size;
+            itemLineObj.transform.localPosition = itemLineInfo.point;
+           
+        }
+        itemLineInfoAllOld = itemLineInfoAll;
+    }
+
+    private List<ItemLineInfo> itemLineInfoAllOld = new List<ItemLineInfo>();
+
     
     public void Init()
     {
         isEndGame = false;
         canCreateLine = false;
-        typeLineCur = TypeLineFind.vertical;
+        typeLineCur = TypeLineFind.horizontal;
         ShowTypeLinePreview();
         InitPoints();
         triangle = new Triangulator(points);
@@ -114,8 +216,6 @@ public class GameplayController : Singleton<GameplayController>
         pointCur = 0;
         pointTarget = originSizeBoard / 2;
         InitItemMask();
-        
-        
 
     }
     private Triangulator triangle;
@@ -163,25 +263,25 @@ public class GameplayController : Singleton<GameplayController>
         int[] trisss = triangle.Triangulate();
         Vector2[] verticles = new Vector2[points.Length];
         Vector2 ori = new Vector2(minX, minY);
-        //Debug.Log("verticles---------------------:"+points.Length+" width:"+width+" height:"+height+"minX:"+minX+" maxX:"+maxX+" minY:"+minY+" maxY:"+maxY);
+        //Debug.Log("verticles---------------------:" + points.Length + " width:" + width + " height:" + height + "minX:" + minX + " maxX:" + maxX + " minY:" + minY + " maxY:" + maxY);
         for (int i = 0; i < points.Length; i++)
         {
             verticles[i] = (points[i] - ori);
-            //Debug.Log(i + ":" + verticles[i]+":"+points[i]);
+            //Debug.Log(i + ":" + verticles[i] + ":" + points[i]);
         }
-        //Debug.Log("triangles------------------------:"+tris.Length);
+        //Debug.Log("triangles------------------------:" + tris.Length);
         for (int i = 0; i < tris.Length; i++)
         {
             tris[i] = (ushort)(trisss[i]);
             //Debug.Log(i + ":" + tris[i]);
         }
-        for (int i = 0; i < tris.Length; i += 3)
-        {
-            //Debug.Log("draw:" + i);
-            Debug.DrawLine(points[tris[i]],points[tris[i +1]], Color.red,10);
-            Debug.DrawLine(points[tris[i +1]],points[tris[i +2]],Color.red,10);
-            Debug.DrawLine(points[tris[i +2]], points[tris[i]], Color.red,10);
-        }
+        //for (int i = 0; i < tris.Length; i += 3)
+        //{
+        //    //Debug.Log("draw:" + i);
+        //    Debug.DrawLine(points[tris[i]],points[tris[i +1]], Color.red,10);
+        //    Debug.DrawLine(points[tris[i +1]],points[tris[i +2]],Color.red,10);
+        //    Debug.DrawLine(points[tris[i +2]], points[tris[i]], Color.red,10);
+        //}
         //Debug.Log("verticles:" + verticles.Length+ " tris" + tris.Length+" minX:"+minX+" minY:"+minY+" width:"+width+" height:"+height);
         sprite.OverrideGeometry(verticles, tris);
         //sprite.OverrideGeometry(sprite.vertices, sprite.triangles);
@@ -191,14 +291,14 @@ public class GameplayController : Singleton<GameplayController>
         //spriteRenderern.transform.position = center;
     }
 
-    private void OnDrawGizmosSelected()
-    {
-        for (int i = 0; i < points.Length; i++)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawCube(points[i], Vector2.one * 10);
-        }
-    }
+    //private void OnDrawGizmosSelected()
+    //{
+    //    for (int i = 0; i < points.Length; i++)
+    //    {
+    //        Gizmos.color = Color.red;
+    //        Gizmos.DrawCube(points[i], Vector2.one * 10);
+    //    }
+    //}
 
     public void ContinueGame()
     {
@@ -214,13 +314,25 @@ public class GameplayController : Singleton<GameplayController>
 
     public void PlayGame()
     {
-
+        //DataController.Instance.UserDataNodeList[ObjectDataController.Instance.idNodeFighting - 1].numStar = 3;
+        //EndGame(true);
         StartCoroutine(PlayGameDelay());
     }
 
     public void EndGame(bool isWin)
     {
-        Debug.Log("EndGame:"+isWin);
+        StartCoroutine(DelayEndGame(isWin));
+    }
+
+    private IEnumerator DelayEndGame(bool isWin)
+    {
+        isEndGame = true;
+        yield return new WaitForSeconds(0.5f);
+        Debug.Log("vao day cai ne:"+ itemSkechingList.Count);
+        for (int i = 0; i < itemSkechingList.Count; i++)
+        {
+            itemSkechingList[i].gameObject.SetActive(false);
+        }
         if (isWin)
         {
             DataController.Instance.UserDataNodeList[ObjectDataController.Instance.idNodeFighting - 1].numStar = 3;
@@ -230,7 +342,8 @@ public class GameplayController : Singleton<GameplayController>
             }
 
         }
-        isEndGame = true;
+        boardTran.gameObject.SetActive(false);
+        itemBall.gameObject.SetActive(false);
         UIGameplayController.Instance.EndGame(isWin);
     }
 
@@ -252,6 +365,8 @@ public class GameplayController : Singleton<GameplayController>
     {
         pointsComplete = new List<Vector2>();
         InitTriangle();
+        CreateBoard();
+
         pointCur = originSizeBoard - (int)triangle.Area();
         //Debug.Log("pointTarget:" + pointTarget + " pointCur:" + pointCur + " Arena:" + triangle.Area());
         UIGameplayController.Instance.UpdatePoint();
@@ -266,19 +381,26 @@ public class GameplayController : Singleton<GameplayController>
     {
         return triangle;
     }
-
+    private List<GameObject> itemSkechingList = new List<GameObject>();
     public void CreateLine(Vector3 posCreate)
     {
-        canCreateLine = false;
-        for (int i = 0; i < 2; i++)
+        if (canCreateLine)
         {
-            GameObject obj = Instantiate(linePrefab[(int)typeLineCur], boardTran);
-            ItemLine itemLine = obj.GetComponent<ItemLine>();
-            obj.transform.position = posCreate;
-            obj.transform.localScale = Vector3.zero;
-            itemLine.Init(typeLineCur,i, false);
+            Debug.Log("vao day ne");
+            canCreateLine = false;
+            itemSkechingList = new List<GameObject>();
+            for (int i = 0; i < 2; i++)
+            {
+                GameObject obj = SmartPool.Instance.Spawn(lineSketchPrefab[(int)typeLineCur], Vector3.zero, Quaternion.identity);
+                ItemLine itemLine = obj.GetComponent<ItemLine>();
+                obj.transform.position = posCreate;
+                obj.transform.localScale = Vector3.zero;
+
+                itemLine.Init(typeLineCur, i, false);
+                itemSkechingList.Add(obj);
+            }
+            ShowTypeLinePreview();
         }
-        ShowTypeLinePreview();
     }
 
     public void ChangeTypeSketching()
@@ -303,7 +425,8 @@ public class GameplayController : Singleton<GameplayController>
     }
     private void AddNewPointBoard(TypeRemoveLine typeRemove)
     {
-        //Debug.Log("AddNewPointBoard:"+typeRemove+":"+itemLineSketchingList.Count+":"+ itemLineInfoList.Count);
+        //Debug.Log("AddNewPointBoard:" + typeRemove + ":" + itemLineSketchingList.Count + ":" + itemLineInfoList.Count);
+        float saiso = 2;
         switch (typeRemove)
         {
             case TypeRemoveLine.Bot:
@@ -311,25 +434,74 @@ public class GameplayController : Singleton<GameplayController>
                 {
                     if (itemLineSketchingList[i].dir == -1)
                     {
-                        itemLineInfoList.Insert(0,new ItemLineInfo(pointsComplete[i],TypeLine.line_top_right));
+                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_right, Vector2.one));
                     }
                     else
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_left));
+                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_left, Vector2.one));
                     }
+                    //bool isSame = false;
+                    //for (int j = 0; j < itemLineInfoList.Count; j++)
+                    //{
+                    //    bool result1 = Mathf.Abs(pointsComplete[i].x - (int)itemLineInfoList[j].point.x) <= saiso;
+                    //    bool result2 = Mathf.Abs(pointsComplete[i].y - (int)itemLineInfoList[j].point.y) <= saiso;
+                    //    bool result = result1 && result2;
+                    //    if (result)
+                    //    {
+                    //        itemLineInfoList.RemoveAt(j);
+                    //        isSame = true;
+                    //        break;
+                    //    }
+                    //}
+                    //if (isSame == false)
+                    //{
+                    //    if (itemLineSketchingList[i].dir == -1)
+                    //    {
+                    //        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_right, Vector2.one));
+                    //    }
+                    //    else
+                    //    {
+                    //        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_left, Vector2.one));
+                    //    }
+                    //}
                 }
                 break;
             case TypeRemoveLine.Top:
+
                 for (int i = 0; i < itemLineSketchingList.Count; i++)
                 {
                     if (itemLineSketchingList[i].dir == -1)
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_right));
+                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_right, Vector2.one));
                     }
                     else
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_left));
+                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_left, Vector2.one));
                     }
+                    //bool isSame = false;
+                    //for (int j = 0; j < itemLineInfoList.Count; j++)
+                    //{
+                    //    bool result1 = Mathf.Abs(pointsComplete[i].x - (int)itemLineInfoList[j].point.x) <= saiso;
+                    //    bool result2 = Mathf.Abs(pointsComplete[i].y - (int)itemLineInfoList[j].point.y) <= saiso;
+                    //    bool result = result1 && result2;
+                    //    if (result)
+                    //    {
+                    //        itemLineInfoList.RemoveAt(j);
+                    //        isSame = true;
+                    //        break;
+                    //    }
+                    //}
+                    //if (isSame == false)
+                    //{
+                    //    if (itemLineSketchingList[i].dir == -1)
+                    //    {
+                    //        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_right, Vector2.one));
+                    //    }
+                    //    else
+                    //    {
+                    //        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_left, Vector2.one));
+                    //    }
+                    //}
                 }
                 break;
             case TypeRemoveLine.Left:
@@ -337,12 +509,36 @@ public class GameplayController : Singleton<GameplayController>
                 {
                     if (itemLineSketchingList[i].dir == -1)
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_right));
+                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_right, Vector2.one));
                     }
                     else
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_right));
+                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_right, Vector2.one));
                     }
+                    //bool isSame = false;
+                    //for (int j = 0; j < itemLineInfoList.Count; j++)
+                    //{
+                    //    bool result1 = Mathf.Abs(pointsComplete[i].x - (int)itemLineInfoList[j].point.x) <= saiso;
+                    //    bool result2 = Mathf.Abs(pointsComplete[i].y - (int)itemLineInfoList[j].point.y) <= saiso;
+                    //    bool result = result1 && result2;
+                    //    if (result)
+                    //    {
+                    //        itemLineInfoList.RemoveAt(j);
+                    //        isSame = true;
+                    //        break;
+                    //    }
+                    //}
+                    //if (isSame == false)
+                    //{
+                    //    if (itemLineSketchingList[i].dir == -1)
+                    //    {
+                    //        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_right, Vector2.one));
+                    //    }
+                    //    else
+                    //    {
+                    //        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_right, Vector2.one));
+                    //    }
+                    //}
                 }
                 break;
             case TypeRemoveLine.Right:
@@ -350,14 +546,43 @@ public class GameplayController : Singleton<GameplayController>
                 {
                     if (itemLineSketchingList[i].dir == -1)
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_left));
+                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_left, Vector2.one));
                     }
                     else
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_left));
+                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_left, Vector2.one));
                     }
+                    //bool isSame = false;
+                    //for (int j = 0; j < itemLineInfoList.Count; j++)
+                    //{
+                    //    bool result1 = Mathf.Abs(pointsComplete[i].x - (int)itemLineInfoList[j].point.x) <= saiso;
+                    //    bool result2 = Mathf.Abs(pointsComplete[i].y - (int)itemLineInfoList[j].point.y) <= saiso;
+                    //    bool result = result1 && result2;
+                    //    if (result)
+                    //    {
+                    //        itemLineInfoList.RemoveAt(j);
+                    //        isSame = true;
+                    //        break;
+                    //    }
+                    //}
+                    //if (isSame == false)
+                    //{
+                    //    if (itemLineSketchingList[i].dir == -1)
+                    //    {
+                    //        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_left, Vector2.one));
+                    //    }
+                    //    else
+                    //    {
+                    //        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_left, Vector2.one));
+                    //    }
+
+                    //}
                 }
                 break;
+        }
+        for (int i = 0; i < itemLineSketchingList.Count; i++)
+        {
+            SmartPool.Instance.Despawn(itemLineSketchingList[i].gameObject);
         }
         itemLineSketchingList = new List<ItemLine>();
         pointsComplete = new List<Vector2>();
@@ -419,6 +644,16 @@ public class GameplayController : Singleton<GameplayController>
         
     }
 
+    private void RemoveLineOld(List<ItemLineInfo>  itemLineInfoAll)
+    {
+        List<ItemLineInfo> itemOldListTmp = GetItemOld(itemLineInfoAll);
+        for (int i = 0; i < itemOldListTmp.Count; i++)
+        {
+            //Debug.Log("Remove:"+itemOldListTmp[i].point+":"+itemOldListTmp[i].typeLine);
+            actionRemoveItemLine(itemOldListTmp[i].typeLine, itemOldListTmp[i].point);
+        }
+    }
+
     private void RemovePointsWhenComplete(TypeRemoveLine typeRemove)
     {
         switch (typeRemove)
@@ -443,9 +678,10 @@ public class GameplayController : Singleton<GameplayController>
     {
         //for (int i = 0; i < itemLineList.Count; i++)
         //{
-        //    Debug.Log(i+":"+itemLineList[i].point + ":" + itemLineList[i].typeLine);
+        //    Debug.Log(i + ":" + itemLineList[i].point + ":" + itemLineList[i].typeLine);
         //}
         if (itemLineList.Count <= 0) return new List<ItemLineInfo>();
+        
         List<ItemLineInfo> result = new List<ItemLineInfo>();
         ItemLineInfo itemLineCur = itemLineList[0];
         result.Add(itemLineCur);
@@ -475,10 +711,10 @@ public class GameplayController : Singleton<GameplayController>
             //return null;
 
         }
-        //for (int i = 0; i < result.Count; i++)
-        //{
-        //    Debug.Log(result[i].point+":"+result[i].typeLine);
-        //}
+        for (int i = 0; i < result.Count; i++)
+        {
+            Debug.Log(result[i].point + ":" + result[i].typeLine);
+        }
         //Debug.Log("end o day ha 2");
         result.RemoveAt(result.Count - 1);
         return result;

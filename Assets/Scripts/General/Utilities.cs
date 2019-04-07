@@ -1,10 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public static class Utilities 
 {
+    public static float SIZE_WIDTH = 1080;
+    public static float SIZE_HEIGHT = 1920;
+    public static float SIZE = 48;
     public static float GetRatioDevice()
     {
         return (float)Screen.height / (float)Screen.width;
@@ -22,7 +26,10 @@ public static class Utilities
             p.y >= rect.y - rect.height / 2 &&
             p.y <= rect.y + rect.height / 2;
     }
-
+    public static double GetScreenDimension()
+    {
+        return Math.Truncate(((float)Screen.width / Screen.height) * 100.0) / 100.0;
+    }
     public static List<Vector2Angle> ArrangePoints(List<Vector2> pts)
     {
         List<Vector2Angle> points = new List<Vector2Angle>();
