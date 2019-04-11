@@ -28,7 +28,7 @@ public static class Utilities
     }
     public static double GetScreenDimension()
     {
-        return Math.Truncate(((float)Screen.width / Screen.height) * 100.0) / 100.0;
+        return Math.Truncate(((float)Screen.height / Screen.width) * 100.0) / 100.0;
     }
     public static List<Vector2Angle> ArrangePoints(List<Vector2> pts)
     {

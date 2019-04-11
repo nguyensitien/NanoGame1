@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class ItemBall : MonoBehaviour
 {
-    
+    [SerializeField]
+    private int[] arrAngleRandom;
     [SerializeField]
     private float speed;
     private bool isRolling;
@@ -22,8 +23,9 @@ public class ItemBall : MonoBehaviour
     public void Init()
     {
         isRolling = true;
-        float angle = Random.Range(0,360);
+        float angle = arrAngleRandom[Random.Range(0,arrAngleRandom.Length)];
         //angle = 0;
+        //angle = 215;
         dirMove.x = Mathf.Cos(Mathf.Deg2Rad*angle);
         dirMove.y = Mathf.Sin(Mathf.Deg2Rad*angle);
         posCur = transform.position;
@@ -37,42 +39,54 @@ public class ItemBall : MonoBehaviour
     private float deltaTime;
     private void FixedUpdate()
     {
+        return;
         if (GameplayController.Instance.isEndGame) return;
         if (isRolling)
         {
             deltaTime = Time.fixedDeltaTime;
             posOld = posCur = transform.localPosition;
             posCur += dirMove * speed * deltaTime;
-
+            
             dist = (posCur - posOld).magnitude;
             RaycastHit2D hit = Physics2D.CircleCast(posOld, radius * size, dirMove, dist, layerMask);
             if (hit.collider != null)
             {
                 Vector3 reflectVec = Vector3.Reflect(dirMove, hit.normal);
                 posCur = hit.point;
-
-                if (dirMove.x * reflectVec.x < 0)
+                //Debug.Log("dirMove:"+dirMove+" reflecVec:"+reflectVec+" posOld:"+posOld+" posCur:"+posCur+" normal:"+hit.normal);
+                //Debug.DrawLine(posOld,posCur,Color.red,Time.fixedDeltaTime);
+                //Debug.DrawLine(posCur, posCur + (Vector2)hit.normal * 100, Color.yellow, Time.fixedDeltaTime);
+                //Debug.DrawLine(posCur, posCur + (Vector2)reflectVec*100,Color.green,Time.fixedDeltaTime);
+                if (dirMove.x * reflectVec.x * dirMove.y * reflectVec.y > 0)
                 {
-                    //doi huong x
-                    if (dirMove.x > 0)
-                    {
-                        posCur.x -= radius * size;
-                    }
-                    else
-                    {
-                        posCur.x += radius * size;
-                    }
+                    posCur.x -= (dirMove.x/Mathf.Abs(dirMove.x)) * radius * size;
+                    posCur.y -= (dirMove.y/Mathf.Abs(dirMove.y)) * radius * size;
                 }
-                if (dirMove.y * reflectVec.y < 0)
+                else
                 {
-                    //doi huong y
-                    if (dirMove.y > 0)
+                    if (dirMove.x * reflectVec.x < 0)
                     {
-                        posCur.y -= radius * size;
+                        //doi huong x
+                        if (dirMove.x > 0)
+                        {
+                            posCur.x -= radius * size;
+                        }
+                        else
+                        {
+                            posCur.x += radius * size;
+                        }
                     }
-                    else
+                    if (dirMove.y * reflectVec.y < 0)
                     {
-                        posCur.y += radius * size;
+                        //doi huong y
+                        if (dirMove.y > 0)
+                        {
+                            posCur.y -= radius * size;
+                        }
+                        else
+                        {
+                            posCur.y += radius * size;
+                        }
                     }
                 }
                 dirMove = reflectVec;
@@ -88,9 +102,16 @@ public class ItemBall : MonoBehaviour
         if (isRolling && collision.tag.Equals("ItemLine"))
         {
             ItemLine itemLine = collision.GetComponent<ItemLine>();
-            if (itemLine != null && itemLine.isCompleteSketching == false)
+            
+            if (itemLine != null )
             {
-                GameplayController.Instance.EndGame(false);
+                //Debug.Log("va cham ne ItemLine:"+itemLine.isCompleteSketching);
+                if (itemLine.isCompleteSketching == false)
+                {
+                    //Debug.Log("va cham ne:" +itemLine.isCompleteSketching);
+                    GameplayController.Instance.EndGame(false);
+                }
+                
             }
         }
     }
