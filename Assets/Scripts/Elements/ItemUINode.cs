@@ -89,12 +89,12 @@ public class ItemUINode : MonoBehaviour {
             }
             else
             {
-                UIPopupController.Instance.notifycationController.Show("Bản đồ này chưa được tạo!");
+                //UIPopupController.Instance.notifycationController.Show("Bản đồ này chưa được tạo!");
             }
         }
         else
         {
-            UIPopupController.Instance.notifycationController.Show("Bạn cần hoàn thành mục tiêu trước!");
+            //UIPopupController.Instance.notifycationController.Show("Bạn cần hoàn thành mục tiêu trước!");
         }
     }
 }

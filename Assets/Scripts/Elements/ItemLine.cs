@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ItemLine : MonoBehaviour
 {
-    public TypeLineFind typeLineFind;
-    [SerializeField]
-    private Sprite[] spritesLine = null;
-    [SerializeField]
-    private SpriteRenderer spriteRenderer;
+    public TypeLineFind typeLine;
     [HideInInspector]
     public bool isCompleteSketching = true;
     private Vector2 scaleCur;
@@ -21,27 +16,12 @@ public class ItemLine : MonoBehaviour
         boxHit = GetComponent<BoxCollider2D>();
     }
     [HideInInspector]
-    public Vector2 posTarget,pointHit;
+    public Vector2 posTarget;
     [SerializeField]
     private LayerMask layerMask;
-    private void Start()
-    {
-        GameplayController.Instance.actionRemoveItemLine += OnRemoveItemLine;
-    }
-   
-    private void OnRemoveItemLine(TypeLine typeLine, Vector2 point)
-    {
-        //Debug.Log("OnRemoveItemLine:"+this.typeLine+"=="+typeLine+" && "+transform.localPosition +"=="+ point);
-        if (this.typeLine == typeLine && (Vector2)transform.localPosition == point && gameObject.activeInHierarchy)
-        {
-            //Debug.Log("Remove:" + typeLine + ":" + point);
-            SmartPool.Instance.Despawn(gameObject);
-        }
-    }
-
     public void Init(TypeLineFind typeLine,int index,bool isSketching)
     {
-        this.typeLineFind = typeLine;
+        this.typeLine = typeLine;
         this.dir = index ==0 ?-1:1;
         isCompleteSketching = isSketching;
         RaycastHit2D hit;
@@ -50,26 +30,16 @@ public class ItemLine : MonoBehaviour
             scaleCur = new Vector2(0, 1);
             hit = Physics2D.Linecast(transform.position, (Vector2)transform.position + Vector2.right * dir * 20000, layerMask);
             posTarget = hit.point;
-            posTarget.x += dir * (GameplayController.Instance.sizeLine.x/2.0f);
-            pointHit = posTarget;
-            posTarget.x -= dir * Utilities.SIZE/2;
+            posTarget.x += dir * GameplayController.Instance.sizeLine.x/2;
         }
         else
         {
             scaleCur = new Vector2(1,0);
             hit = Physics2D.Linecast(transform.position, (Vector2)transform.position + Vector2.up * dir * 20000, layerMask);
             posTarget = hit.point;
-            posTarget.y += dir * (GameplayController.Instance.sizeLine.x / 2.0f);
-            pointHit = posTarget;
-            posTarget.y -= dir * Utilities.SIZE/2;
+            posTarget.y += dir * GameplayController.Instance.sizeLine.x/2;
         }
         //Debug.Log("hit:"+transform.position+"=>"+posTarget);
-    }
-    public TypeLine typeLine;
-
-    public void InitTypeLine(TypeLine typeLine)
-    {
-        this.typeLine = typeLine;
     }
 
     public void UnTrigger()
@@ -83,23 +53,23 @@ public class ItemLine : MonoBehaviour
 
         if (isCompleteSketching == false && GameplayController.Instance.isEndGame == false)
         {
-            if (typeLineFind.Equals(TypeLineFind.vertical))
+            if (typeLine.Equals(TypeLineFind.vertical))
             {
                 scaleCur.y += GameConfig.SPEED_SCALE * Time.deltaTime * dir;
                 if (Mathf.Abs(scaleCur.y) >= Mathf.Abs((posTarget.y - transform.position.y) / 100.0f))
                 {
                     scaleCur.y = (posTarget.y - transform.position.y) / 100.0f;
-                    CompleteSketching(pointHit);
+                    CompleteSketching(posTarget);
                 }
 
             }
-            else if (typeLineFind.Equals(TypeLineFind.horizontal))
+            else if (typeLine.Equals(TypeLineFind.horizontal))
             {
                 scaleCur.x += GameConfig.SPEED_SCALE * Time.deltaTime * dir;
                 if (Mathf.Abs(scaleCur.x) >= Mathf.Abs((posTarget.x - transform.position.x) / 100.0f))
                 {
                     scaleCur.x = (posTarget.x - transform.position.x) / 100.0f;
-                    CompleteSketching(pointHit);
+                    CompleteSketching(posTarget);
                 }
             }
             transform.localScale = scaleCur;
@@ -119,12 +89,11 @@ public class ItemLineInfo
     public Vector2 point;
     public TypeLine typeLine;
     public TypeLineFind typeLineFind;
-    public Vector2 size;
-    public ItemLineInfo(Vector2 point,TypeLine typeLine,Vector2 size)
+    public ItemLineInfo(Vector2 point,TypeLine typeLine)
     {
         this.point = point;
+        this.point.x = Mathf.Ceil(point.x);
+        this.point.y = Mathf.Ceil(point.y);
         this.typeLine = typeLine;
-        this.size = size;
     }
-
 }

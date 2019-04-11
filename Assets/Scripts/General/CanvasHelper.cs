@@ -15,7 +15,7 @@ public class CanvasHelper : MonoBehaviour {
     {
         var size3_2 = 2f;
         var sizeScene = Utilities.GetScreenDimension();
-        var isMatchHeight = sizeScene >= size3_2;
+        var isMatchHeight = sizeScene < size3_2;
         var canvas = GetComponent<CanvasScaler>();
         canvas.matchWidthOrHeight = isMatchHeight ? 1 : 0;
     }
