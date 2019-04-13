@@ -11,8 +11,6 @@ public class GameplayController : Singleton<GameplayController>
     [SerializeField]
     private Vector2 sizeBoard;
     [SerializeField]
-    private ItemBall itemBall = null;
-    [SerializeField]
     private Transform boardTran = null;
     [SerializeField]
     private Transform itemMask = null;
@@ -42,11 +40,16 @@ public class GameplayController : Singleton<GameplayController>
         return points;
     }
     private GameObject nodeMap;
+    private ItemBall[] arrItemBall;
     private void Start()
     {
+
         //GameObject mapPrefab = Resources.Load<GameObject>("Maps/Node" + 1);
         //GameObject nodeMap = Instantiate(mapPrefab);
         nodeMap = Instantiate(ObjectDataController.Instance.nodeMapFighting);
+        nodeMap.transform.Find("Tilemap").GetComponent<TilemapRenderer>().maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+        arrItemBall = FindObjectsOfType<ItemBall>();
+        
         nodeMap.transform.localPosition = Vector3.zero;
         tileMap = nodeMap.transform.GetChild(0).GetComponent<Tilemap>();
         itemMaskScript = itemMask.GetComponent<SpriteMask>();
@@ -97,6 +100,16 @@ public class GameplayController : Singleton<GameplayController>
         {
             points[i] = itemLineInfoList[i].point;
         }
+    }
+
+    public Vector2[] ParsePointFromItemInfo(List<ItemLineInfo> itemLineInfoListTmp)
+    {
+        Vector2[] result = new Vector2[itemLineInfoListTmp.Count];
+        for (int i = 0; i < result.Length; i++)
+        {
+            result[i] = itemLineInfoListTmp[i].point;
+        }
+        return result;
     }
 
     
@@ -163,9 +176,9 @@ public class GameplayController : Singleton<GameplayController>
         //for (int i = 0; i < tris.Length; i += 3)
         //{
         //    //Debug.Log("draw:" + i);
-        //    Debug.DrawLine(pointsBorder[tris[i]], pointsBorder[tris[i +1]], Color.red,10);
-        //    Debug.DrawLine(pointsBorder[tris[i +1]], pointsBorder[tris[i +2]],Color.red,10);
-        //    Debug.DrawLine(pointsBorder[tris[i +2]], pointsBorder[tris[i]], Color.red,10);
+        //    Debug.DrawLine(pointsBorder[tris[i]], pointsBorder[tris[i + 1]], Color.red, 10);
+        //    Debug.DrawLine(pointsBorder[tris[i + 1]], pointsBorder[tris[i + 2]], Color.red, 10);
+        //    Debug.DrawLine(pointsBorder[tris[i + 2]], pointsBorder[tris[i]], Color.red, 10);
         //}
         //Debug.Log("verticles:" + verticles.Length+ " tris" + tris.Length+" minX:"+minX+" minY:"+minY+" width:"+width+" height:"+height);
         sprite.OverrideGeometry(verticles, tris);
@@ -243,13 +256,16 @@ public class GameplayController : Singleton<GameplayController>
     {
         boardTran.gameObject.SetActive(false);
         nodeMap.SetActive(false);
-        itemBall.gameObject.SetActive(false);
+        for (int i = 0; i < arrItemBall.Length; i++)
+        {
+            arrItemBall[i].gameObject.SetActive(false);
+        }
+        
     }
 
     public void EndGame(bool isWin)
     {
         //Debug.Log("EndGame:"+isWin);
-        return;
         HideBoardGame();
         if (isWin)
         {
@@ -267,7 +283,11 @@ public class GameplayController : Singleton<GameplayController>
     private IEnumerator PlayGameDelay()
     {
         canCreateLine = false;
-        itemBall.Init();
+        for (int i = 0; i < arrItemBall.Length; i++)
+        {
+            arrItemBall[i].Init();
+        }
+        
         yield return null;
         yield return null;
         yield return null;
@@ -283,7 +303,6 @@ public class GameplayController : Singleton<GameplayController>
         pointsComplete = new List<Vector2>();
         InitTriangle();
         pointCur = originSizeBoard - (int)triangle.Area();
-        //Debug.Log("pointTarget:" + pointTarget + " pointCur:" + pointCur + " Arena:" + triangle.Area());
         UIGameplayController.Instance.UpdatePoint();
         if (pointCur >= pointTarget)
         {
@@ -333,31 +352,31 @@ public class GameplayController : Singleton<GameplayController>
         }
     }
 
-    private void RemovePointsSame()
+    private void RemovePointsSame(List<ItemLineInfo> itemLineInfoListTmp)
     {
         for (int i = 0; i < itemLineSketchingList.Count; i++)
         {
-            for (int j = 0; j < itemLineInfoList.Count; j++)
+            for (int j = 0; j < itemLineInfoListTmp.Count; j++)
             {
-                if ((pointsComplete[i] - itemLineInfoList[j].point).magnitude <= sizeLine.x-1)
+                if ((pointsComplete[i] - itemLineInfoListTmp[j].point).magnitude <= sizeLine.x-1)
                 {
-                    itemLineInfoList.RemoveAt(j);
+                    itemLineInfoListTmp.RemoveAt(j);
                     break;
                 }
             }
         }
     }
-    private void AddNewPointBoard(TypeRemoveLine typeRemove)
+    private void AddNewPointBoard(TypeRemoveLine typeRemove,List<ItemLineInfo> itemLineInfoListTmp)
     {
-        //Debug.Log("AddNewPointBoard:"+typeRemove+":"+itemLineSketchingList.Count+":"+ itemLineInfoList.Count);
-        //for (int i = 0; i < itemLineInfoList.Count; i++)
+        //Debug.Log("AddNewPointBoard:" + typeRemove + ":" + itemLineSketchingList.Count + ":" + itemLineInfoList.Count);
+        //for (int i = 0; i < itemLineInfoListTmp.Count; i++)
         //{
-        //    Debug.Log("before:"+itemLineInfoList[i].point+":"+itemLineInfoList[i].typeLine+":"+ itemLineInfoList.Count);
+        //    Debug.Log("before:" + itemLineInfoListTmp[i].point + ":" + itemLineInfoListTmp[i].typeLine + ":" + itemLineInfoListTmp.Count);
         //}
-        RemovePointsSame();
-        //for (int i = 0; i < itemLineInfoList.Count; i++)
+        RemovePointsSame(itemLineInfoListTmp);
+        //for (int i = 0; i < itemLineInfoListTmp.Count; i++)
         //{
-        //    Debug.Log("after:" + itemLineInfoList[i].point + ":" + itemLineInfoList[i].typeLine + ":" + itemLineInfoList.Count);
+        //    Debug.Log("after:" + itemLineInfoListTmp[i].point + ":" + itemLineInfoListTmp[i].typeLine + ":" + itemLineInfoListTmp.Count);
         //}
         switch (typeRemove)
         {
@@ -374,7 +393,7 @@ public class GameplayController : Singleton<GameplayController>
                         itemLineInfo = new ItemLineInfo(pointsComplete[i], TypeLine.line_top_left);
                     }
                     //if(Check)
-                    itemLineInfoList.Insert(0,itemLineInfo);
+                    itemLineInfoListTmp.Insert(0,itemLineInfo);
                 }
                 break;
             case TypeRemoveLine.Top:
@@ -382,11 +401,11 @@ public class GameplayController : Singleton<GameplayController>
                 {
                     if (itemLineSketchingList[i].dir == -1)
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_right));
+                        itemLineInfoListTmp.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_right));
                     }
                     else
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_left));
+                        itemLineInfoListTmp.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_left));
                     }
                 }
                 break;
@@ -395,11 +414,11 @@ public class GameplayController : Singleton<GameplayController>
                 {
                     if (itemLineSketchingList[i].dir == -1)
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_right));
+                        itemLineInfoListTmp.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_right));
                     }
                     else
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_right));
+                        itemLineInfoListTmp.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_right));
                     }
                 }
                 break;
@@ -408,17 +427,16 @@ public class GameplayController : Singleton<GameplayController>
                 {
                     if (itemLineSketchingList[i].dir == -1)
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_left));
+                        itemLineInfoListTmp.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_left));
                     }
                     else
                     {
-                        itemLineInfoList.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_left));
+                        itemLineInfoListTmp.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_left));
                     }
                 }
                 break;
         }
-        itemLineSketchingList = new List<ItemLine>();
-        pointsComplete = new List<Vector2>();
+        
     }
     private List<Vector2> pointsComplete = new List<Vector2>();
     private List<ItemLine> itemLineSketchingList = new List<ItemLine>();
@@ -430,69 +448,104 @@ public class GameplayController : Singleton<GameplayController>
         if (pointsComplete.Count == 2)
         {
             canCreateLine = true;
-            if (typeLineCur.Equals(TypeLineFind.horizontal))
+            for (int i = 0; i < 2; i++)
             {
-                if (pointsComplete[0].y >= itemBall.transform.position.y)
+                List<ItemLineInfo> itemLineInfoListTmp = new List<ItemLineInfo>(itemLineInfoList);
+                if (typeLineCur.Equals(TypeLineFind.horizontal))
                 {
-                    //cat ben tren
-                    //Debug.Log("cat ben tren");
-                    AddNewPointBoard(TypeRemoveLine.Top);
-                    //RemovePointsWhenComplete(TypeRemoveLine.Top);
+                    if (i == 0)
+                    {
+                        //cat ben tren
+                        //Debug.Log("cat ben tren");
+                        AddNewPointBoard(TypeRemoveLine.Top, itemLineInfoListTmp);
+                    }
+                    else
+                    {
+                        //cat ben bot
+                        //Debug.Log("cat ben bot");
+                        AddNewPointBoard(TypeRemoveLine.Bot, itemLineInfoListTmp);
+                    }
+                    itemLineInfoListTmp = SortPoints(itemLineInfoListTmp);
+                    Vector2[] pointsTmp = ParsePointFromItemInfo(itemLineInfoListTmp);
+                    if (Utilities.IsPointInPolygon(arrItemBall[0].transform.position, pointsTmp))
+                    {
+                        itemLineInfoList = new List<ItemLineInfo>(itemLineInfoListTmp);
+                        InitItemMask();
+                        ChangeTypeSketching();
+                        //Debug.Log("nam trong ne");
+                        itemLineSketchingList = new List<ItemLine>();
+                        pointsComplete = new List<Vector2>();
+                        return;
+                    }
+                    else
+                    {
+                        //Debug.Log("ball khong nam trong points");
+                    }
                 }
                 else
                 {
-                    //cat ben bot
-                    //Debug.Log("cat ben bot");
-                    AddNewPointBoard(TypeRemoveLine.Bot);
-                    //RemovePointsWhenComplete(TypeRemoveLine.Bot);
+                    if (i == 0)
+                    {
+                        //cat ben phai
+                        //Debug.Log("cat ben phai");
+                        AddNewPointBoard(TypeRemoveLine.Right, itemLineInfoListTmp);
+                    }
+                    else
+                    {
+                        //cat ben trai
+                        //Debug.Log("cat ben trai");
+                        
+                        AddNewPointBoard(TypeRemoveLine.Left, itemLineInfoListTmp);
+                    }
+                    itemLineInfoListTmp = SortPoints(itemLineInfoListTmp);
+                    
+                    Vector2[] pointsTmp = ParsePointFromItemInfo(itemLineInfoListTmp);
+                    if (Utilities.IsPointInPolygon(arrItemBall[0].transform.position, pointsTmp))
+                    {
+                        //Debug.Log("nam trong ne");
+                        itemLineInfoList = new List<ItemLineInfo>(itemLineInfoListTmp) ;
+                        //for (int j = 0; j < itemLineInfoList.Count; j++)
+                        //{
+                        //    Debug.Log(j + ":" + itemLineInfoList[j].point + ":" + itemLineInfoList[j].typeLine);
+                        //}
+                        InitItemMask();
+                        ChangeTypeSketching();
+                        itemLineSketchingList = new List<ItemLine>();
+                        pointsComplete = new List<Vector2>();
+                        return;
+                    }
+                    else
+                    {
+                        //Debug.Log("ball khong nam trong points");
+                    }
                 }
             }
-            else
-            {
-                if (pointsComplete[0].x >= itemBall.transform.position.x)
-                {
-                    //cat ben phai
-                    //Debug.Log("cat ben phai");
-                    AddNewPointBoard(TypeRemoveLine.Right);
-                    //RemovePointsWhenComplete(TypeRemoveLine.Right);
-                }
-                else
-                {
-                    //cat ben trai
-                    //Debug.Log("cat ben trai");
-                    AddNewPointBoard(TypeRemoveLine.Left);
-                    //RemovePointsWhenComplete(TypeRemoveLine.Left);
-                }
-            }
-            itemLineInfoList = SortPoints(itemLineInfoList);
-            //itemLineInfoList.RemoveAt(itemLineInfoList.Count-1);
+            
+            //itemLineInfoList = SortPoints(itemLineInfoList);
+            //
             //Debug.Log("----After Sort-----");
-            //for (int i = 0; i < itemLineInfoList.Count; i++)
-            //{
-            //    Debug.Log(i + ":" + itemLineInfoList[i].point + ":" + itemLineInfoList[i].typeLine);
-            //}
-            InitItemMask();
-            ChangeTypeSketching();
+            
+            
         }
         
     }
 
-    p
-    public List<ItemLineInfo> SortPoints(List<ItemLineInfo> itemLineList)
+    public List<ItemLineInfo> SortPoints(List<ItemLineInfo> itemLineInfoListTmp)
     {
-        //for (int i = 0; i < itemLineList.Count; i++)
+        //Debug.Log("SortPoints");
+        //for (int i = 0; i < itemLineInfoListTmp.Count; i++)
         //{
-        //    Debug.Log(i + ":" + itemLineList[i].point + ":" + itemLineList[i].typeLine);
+        //    Debug.Log(i + ":" + itemLineInfoListTmp[i].point + ":" + itemLineInfoListTmp[i].typeLine);
         //}
-        if (itemLineList.Count <= 0) return new List<ItemLineInfo>();
+        if (itemLineInfoListTmp.Count <= 0) return new List<ItemLineInfo>();
         List<ItemLineInfo> result = new List<ItemLineInfo>();
-        ItemLineInfo itemLineCur = itemLineList[0];
+        ItemLineInfo itemLineCur = itemLineInfoListTmp[0];
         result.Add(itemLineCur);
         //itemLineList.RemoveAt(0);
         int index = 0;
-        while (index <= 30)
+        while (index <= 100)
         {
-            itemLineCur = FindPointNextValid(itemLineCur,itemLineList, result);
+            itemLineCur = FindPointNextValid(itemLineCur, itemLineInfoListTmp, result);
             //Debug.Log("result:"+result.Count+":"+itemLineCur);
             if (itemLineCur != null)
             {
@@ -514,16 +567,16 @@ public class GameplayController : Singleton<GameplayController>
             //return null;
 
         }
-        //for (int i = 0; i < result.Count; i++)
-        //{
-        //    Debug.Log(result[i].point+":"+result[i].typeLine);
-        //}
+        for (int i = 0; i < result.Count; i++)
+        {
+            Debug.Log(result[i].point + ":" + result[i].typeLine);
+        }
         //Debug.Log("end o day ha 2");
         result.RemoveAt(result.Count - 1);
         return result;
     }
 
-    private ItemLineInfo FindPointNextValid(ItemLineInfo itemLineInfoCur,List<ItemLineInfo> itemLineList,List<ItemLineInfo> result)
+    private ItemLineInfo FindPointNextValid(ItemLineInfo itemLineInfoCur,List<ItemLineInfo> itemLineInfoListTmp, List<ItemLineInfo> result)
     {
         TypeLineFind typeLineFind = TypeLineFind.horizontal;
         if (itemLineInfoCur.typeLine == TypeLine.line_bot_right || itemLineInfoCur.typeLine == TypeLine.line_top_left)
@@ -542,9 +595,13 @@ public class GameplayController : Singleton<GameplayController>
                 typeLineFind = TypeLineFind.horizontal;
             }
         }
-        //Debug.Log("FindPointsNext:" + itemLineInfoCur.point + ":" + itemLineInfoCur.typeLine + ":" + itemLineList.Count + ":" + typeLineFind);
-        List<ItemLineInfo> list = FindPointsNext(itemLineInfoCur, typeLineFind,itemLineList);
+        //Debug.Log("FindPointsNext:" + itemLineInfoCur.point + ":" + itemLineInfoCur.typeLine + ":" + itemLineInfoListTmp.Count + ":" + typeLineFind);
+        List<ItemLineInfo> list = FindPointsNext(itemLineInfoCur, typeLineFind, itemLineInfoListTmp);
         //Debug.Log("list:" + list.Count);
+        //for (int i = 0; i < list.Count; i++)
+        //{
+        //    Debug.Log("point:"+i+":"+list[i].point+":"+list[i].typeLine+":"+ itemLineInfoCur.point);
+        //}
         return FindPointNextValidNearst(itemLineInfoCur, list);
     }
 
@@ -557,9 +614,11 @@ public class GameplayController : Singleton<GameplayController>
         for (int i = 1; i < itemLineList.Count; i++)
         {
             float distanceTmp = (itemLineList[i].point - itemLineInfoCur.point).magnitude;
+            //Debug.Log("i:"+i+"=>"+ distanceTmp + "<"+distanceMin+" :: "+itemLineInfoList[i].point+"-"+itemLineInfoCur.point);
             if (distanceTmp < distanceMin)
             {
                 indexMin = i;
+                distanceMin = distanceTmp;
             }
         }
         return itemLineList[indexMin];
