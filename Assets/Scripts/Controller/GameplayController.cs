@@ -84,9 +84,7 @@ public class GameplayController : Singleton<GameplayController>
                 }
             }
         }
-        ItemLineInfo item = itemLineInfoList[4];
-        itemLineInfoList.RemoveAt(4);
-        itemLineInfoList.Add(item);
+       
         itemLineInfoList = SortPoints(itemLineInfoList);
        
         Init();
