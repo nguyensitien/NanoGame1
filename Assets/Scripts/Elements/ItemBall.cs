@@ -39,7 +39,6 @@ public class ItemBall : MonoBehaviour
     private float deltaTime;
     private void FixedUpdate()
     {
-        return;
         if (GameplayController.Instance.isEndGame) return;
         if (isRolling)
         {
