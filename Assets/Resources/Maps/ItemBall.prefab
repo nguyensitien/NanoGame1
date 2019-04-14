@@ -93,7 +93,7 @@ MonoBehaviour:
   speed: 400
   layerMask:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 768
 --- !u!212 &212357516810109652
 SpriteRenderer:
   m_ObjectHideFlags: 1

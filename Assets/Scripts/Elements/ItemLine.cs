@@ -5,7 +5,6 @@ using UnityEngine;
 public class ItemLine : MonoBehaviour
 {
     public TypeLineFind typeLine;
-    [HideInInspector]
     public bool isCompleteSketching = true;
     private Vector2 scaleCur;
     private BoxCollider2D boxHit;
@@ -21,6 +20,7 @@ public class ItemLine : MonoBehaviour
     private LayerMask layerMask;
     public void Init(TypeLineFind typeLine,int index,bool isSketching)
     {
+        isRun = true;
         this.typeLine = typeLine;
         this.dir = index ==0 ?-1:1;
         isCompleteSketching = isSketching;
@@ -47,10 +47,10 @@ public class ItemLine : MonoBehaviour
         boxHit.enabled = false;
     }
 
-
+    private bool isRun;
     private void Update()
     {
-
+        if (isRun == false) return;
         if (isCompleteSketching == false && GameplayController.Instance.isEndGame == false)
         {
             if (typeLine.Equals(TypeLineFind.vertical))
@@ -78,7 +78,7 @@ public class ItemLine : MonoBehaviour
 
     private void CompleteSketching(Vector2 pos)
     {
-        isCompleteSketching = true;
+        isRun = false;
         GameplayController.Instance.CompleteSketching(pos,this);
     }
 

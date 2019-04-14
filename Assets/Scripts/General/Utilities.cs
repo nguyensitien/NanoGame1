@@ -143,4 +143,10 @@ public static class Utilities
         }
         return inside;
     }
+
+    public static float GetVelcoityAfterCollide(float vA,float vB,float mA,float mB)
+    {
+        return ((mA - mB) / (mA + mB)) * vA + ((2*mB/(mA+mB)))*vB;
+    }
+
 }
