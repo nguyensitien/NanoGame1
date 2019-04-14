@@ -42,6 +42,7 @@ public class GameplayController : Singleton<GameplayController>
     }
     private GameObject nodeMap;
     private ItemBall[] arrItemBall;
+    private ConditionNode conditionMain;
     private void Start()
     {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
@@ -49,6 +50,7 @@ public class GameplayController : Singleton<GameplayController>
         //GameObject mapPrefab = Resources.Load<GameObject>("Maps/Node" + 1);
         //GameObject nodeMap = Instantiate(mapPrefab);
         nodeMap = Instantiate(ObjectDataController.Instance.nodeMapFighting);
+        conditionMain = nodeMap.GetComponent<ConditionNode>();
         nodeMap.transform.Find("Tilemap").GetComponent<TilemapRenderer>().maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
         arrItemBall = FindObjectsOfType<ItemBall>();
         
@@ -129,7 +131,7 @@ public class GameplayController : Singleton<GameplayController>
         //InitTriangle();
         originSizeBoard = (int)triangle.Area();
         pointCur = 0;
-        pointTarget = (int)(originSizeBoard*0.75f);
+        pointTarget = (int)(originSizeBoard*conditionMain.percentWin);
         InitItemMask();
         
         
