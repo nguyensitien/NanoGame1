@@ -6,9 +6,11 @@ using UnityEngine;
 
 public static class Utilities 
 {
+    public static bool IS_DEBUG = true;
     public static float SIZE_WIDTH = 1080;
     public static float SIZE_HEIGHT = 1920;
     public static float SIZE = 48;
+    public static float SAISO = 2;
     public static float GetRatioDevice()
     {
         return (float)Screen.height / (float)Screen.width;
