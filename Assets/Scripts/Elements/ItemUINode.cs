@@ -78,7 +78,7 @@ public class ItemUINode : MonoBehaviour {
 
     public void OnClickPlay()
     {
-        if (isUnlocked == true)
+        //if (isUnlocked == true)
         {
             GameObject mapPrefab = Resources.Load<GameObject>("Maps/Node"+idNode);
             if (mapPrefab)
@@ -92,9 +92,9 @@ public class ItemUINode : MonoBehaviour {
                 //UIPopupController.Instance.notifycationController.Show("Bản đồ này chưa được tạo!");
             }
         }
-        else
-        {
-            //UIPopupController.Instance.notifycationController.Show("Bạn cần hoàn thành mục tiêu trước!");
-        }
+        //else
+        //{
+        //    //UIPopupController.Instance.notifycationController.Show("Bạn cần hoàn thành mục tiêu trước!");
+        //}
     }
 }

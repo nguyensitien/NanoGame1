@@ -294,10 +294,13 @@ public class GameplayController : Singleton<GameplayController>
         HideBoardGame();
         if (isWin)
         {
-            DataController.Instance.UserDataNodeList[ObjectDataController.Instance.idNodeFighting - 1].numStar = 3;
-            if (DataController.Instance.UserData.idNodeHighest == ObjectDataController.Instance.idNodeFighting)
+            if (Utilities.IS_DEBUG == false)
             {
-                DataController.Instance.UserData.idNodeHighest += 1;
+                DataController.Instance.UserDataNodeList[ObjectDataController.Instance.idNodeFighting - 1].numStar = 3;
+                if (DataController.Instance.UserData.idNodeHighest == ObjectDataController.Instance.idNodeFighting)
+                {
+                    DataController.Instance.UserData.idNodeHighest += 1;
+                }
             }
 
         }
@@ -505,7 +508,7 @@ public class GameplayController : Singleton<GameplayController>
                     {
                         if (itemLineSketchingList[i].dir == -1)
                         {
-                            //Debug.Log("add new:" + i + " dir:" + itemLineSketchingList[i].dir + " point:" + pointsComplete[i] + ":" + TypeLine.line_top_right);
+                           // Debug.Log("add new:" + i + " dir:" + itemLineSketchingList[i].dir + " point:" + pointsComplete[i] + ":" + TypeLine.line_top_right);
                             itemLineInfoListTmp.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_top_right));
                         }
                         else
@@ -526,7 +529,7 @@ public class GameplayController : Singleton<GameplayController>
                     }
                     else
                     {
-                       // Debug.Log("add new:" + (typeAdd - 1) + " dir:" + itemLineSketchingList[typeAdd - 1].dir + " point:" + pointsComplete[typeAdd - 1] + ":" + TypeLine.line_bot_right);
+                        //Debug.Log("add new:" + (typeAdd - 1) + " dir:" + itemLineSketchingList[typeAdd - 1].dir + " point:" + pointsComplete[typeAdd - 1] + ":" + TypeLine.line_bot_right);
                         itemLineInfoListTmp.Insert(0, new ItemLineInfo(pointsComplete[typeAdd - 1], TypeLine.line_bot_right));
                     }
                 }
@@ -624,7 +627,7 @@ public class GameplayController : Singleton<GameplayController>
                                 itemLineInfoList.Remove(itemLineInfoListTmp[j]);
                             }
                             //itemLineInfoList.Remove(itemLineInfoListTmp[itemLineInfoListTmp.Count - 1]);
-                            //Debug.Log("after remove:" + itemLineInfoList.Count);
+                           // Debug.Log("after remove:" + itemLineInfoList.Count);
                         }
                     }
                     else
@@ -733,7 +736,7 @@ public class GameplayController : Singleton<GameplayController>
                 {
                     if (itemLineCur.point == result[1].point)
                     {
-                        //Debug.Log("end o day ha 3");
+                       // Debug.Log("end o day ha 3");
                         List<ItemLineInfo> resultNew = new List<ItemLineInfo>();
                         resultNew.Add(result[0]);
                         return resultNew;
@@ -783,14 +786,70 @@ public class GameplayController : Singleton<GameplayController>
                 typeLineFind = TypeLineFind.horizontal;
             }
         }
-        //Debug.Log("FindPointsNext:" + itemLineInfoCur.point + ":" + itemLineInfoCur.typeLine + ":" + itemLineInfoListTmp.Count + ":" + typeLineFind);
+       // Debug.Log("FindPointsNext:" + itemLineInfoCur.point + ":" + itemLineInfoCur.typeLine + ":" + itemLineInfoListTmp.Count + ":" + typeLineFind);
         List<ItemLineInfo> list = FindPointsNext(itemLineInfoCur, typeLineFind, itemLineInfoListTmp);
         //Debug.Log("list:" + list.Count);
         //for (int i = 0; i < list.Count; i++)
         //{
-        //    Debug.Log("point:"+i+":"+list[i].point+":"+list[i].typeLine+":"+ itemLineInfoCur.point);
+        //    Debug.Log("point:" + i + ":" + list[i].point + ":" + list[i].typeLine + ":" + itemLineInfoCur.point);
         //}
-        return FindPointNextValidNearst(itemLineInfoCur, list);
+        ItemLineInfo itemLineNearst = FindPointNextValidNearst(itemLineInfoCur, list);
+        if (itemLineNearst == null) return null;
+        return CheckItemSortValid(itemLineNearst, itemLineInfoCur, itemLineInfoListTmp);
+    }
+
+    private ItemLineInfo CheckItemSortValid(ItemLineInfo itemLineNearst,ItemLineInfo itemLineInfoCur, List<ItemLineInfo> list)
+    {
+        //Debug.Log("CheckItemSortValid:"+ itemLineInfoCur.point+" : "+itemLineNearst.point+": "+list.Count);
+        if (Mathf.Abs(itemLineInfoCur.point.x - itemLineNearst.point.x) <= Utilities.SAISO)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                //Debug.Log(" x :"+ list[i].point + " - "+ itemLineInfoCur.point);
+                if (Mathf.Abs(list[i].point.x - itemLineInfoCur.point.x) <= Utilities.SAISO)
+                {
+                    if (itemLineInfoCur.point.y < itemLineNearst.point.y)
+                    {
+                        if (list[i].point.y < itemLineNearst.point.y && list[i].point.y > itemLineInfoCur.point.y)
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        if (list[i].point.y < itemLineInfoCur.point.y && list[i].point.y > itemLineNearst.point.y)
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+        }
+        else if (Mathf.Abs(itemLineInfoCur.point.y - itemLineNearst.point.y) <= Utilities.SAISO)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                //Debug.Log(" y :" + list[i].point + " - " + itemLineInfoCur.point);
+                if (Mathf.Abs(list[i].point.y - itemLineInfoCur.point.y) <= Utilities.SAISO)
+                {
+                    if (itemLineInfoCur.point.x < itemLineNearst.point.x)
+                    {
+                        if (list[i].point.x < itemLineNearst.point.x && list[i].point.x > itemLineInfoCur.point.x)
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        if (list[i].point.x < itemLineInfoCur.point.x && list[i].point.x > itemLineNearst.point.x)
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+        }
+        return itemLineNearst;
     }
 
     private ItemLineInfo FindPointNextValidNearst(ItemLineInfo itemLineInfoCur, List<ItemLineInfo> itemLineList)
@@ -829,7 +888,7 @@ public class GameplayController : Singleton<GameplayController>
                         if (itemLineTmp.typeLine == TypeLine.line_bot_right || itemLineTmp.typeLine == TypeLine.line_top_right)
                         {
                             //Debug.Log("vao day chu ha:" + (int)itemLineTmp.point.y + "==" + (int)itemLine.point.y + " && " + itemLineTmp.point.x + "<" + itemLine.point.x);
-                            if ((Mathf.Abs(itemLineTmp.point.y - itemLine.point.y) <= 1) && itemLineTmp.point.x < itemLine.point.x )
+                            if ((Mathf.Abs(itemLineTmp.point.y - itemLine.point.y) <= Utilities.SAISO) && itemLineTmp.point.x < itemLine.point.x )
                                 result.Add(itemLineTmp);
                         }
                     }
