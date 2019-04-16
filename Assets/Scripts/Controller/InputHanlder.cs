@@ -14,21 +14,24 @@ public class InputHanlder : MonoBehaviour
             Vector3 posMouse = Input.mousePosition;
             posMouse = cam.ScreenToWorldPoint(posMouse);
             posMouse.z = 0;
-            if (Utilities.IsPointInPolygon(posMouse, GameplayController.Instance.GetPointsBoard()))
+            for (int i = 0; i < GameplayController.Instance.pointsList.Count; i++)
             {
-                RaycastHit2D hit = Physics2D.BoxCast(posMouse,Vector2.one*GameplayController.Instance.sizeLine.x,0,Vector2.zero,0);
-                if (hit.collider == null)
+                Vector2[] points = GameplayController.Instance.GetPointsBoard(i);
+                
+                if (points.Length > 0 && Utilities.IsPointInPolygon(posMouse, points))
                 {
-                    posMouse.x = Mathf.Ceil(posMouse.x);
-                    posMouse.y = Mathf.Ceil(posMouse.y);
-                    posMouse = GameplayController.Instance.RoundPosCreateLine((Vector2)posMouse);
-                    GameplayController.Instance.CreateLine(posMouse);
+                    RaycastHit2D hit = Physics2D.BoxCast(posMouse, Vector2.one * GameplayController.Instance.sizeLine.x*2, 0, Vector2.zero, 0);
+                    if (hit.collider == null)
+                    {
+                        posMouse.x = Mathf.Ceil(posMouse.x);
+                        posMouse.y = Mathf.Ceil(posMouse.y);
+                        posMouse = GameplayController.Instance.RoundPosCreateLine(i,(Vector2)posMouse);
+                        GameplayController.Instance.indexMask = i;
+                        GameplayController.Instance.CreateLine(posMouse);
+                    }
                 }
             }
-            else
-            {
-                //Debug.Log("khong vao:"+ posMouse);
-            }
+            
         }
     }
 }
