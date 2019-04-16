@@ -69,33 +69,33 @@ public class ItemBall : MonoBehaviour
                     if (hit.collider.gameObject != gameObject)
                     {
 
-                        if (hit.collider.tag == "ItemBall" )
-                        {
+                        //if (hit.collider.tag == "ItemBall" )
+                        //{
 
-                            Vector3 reflectVec = Vector3.Reflect(dirMove, hit.normal);
-                            pointHit = new Vector2(hit.transform.position.x + hit.normal.x * (radius), hit.transform.position.y + hit.normal.y * (radius));
-                            //Debug.DrawLine(posOld - dirMove * 100, posCur, Color.red, Time.fixedDeltaTime);
-                            posCur.x = hit.transform.position.x + hit.normal.x * (radius + radius + radius*deltaTime);
-                            posCur.y = hit.transform.position.y + hit.normal.y * (radius + radius + +radius * deltaTime);
-                            //Debug.Log("------Collider name:" + name + " dirMove:" + dirMove + " reflectVec:" + reflectVec + " posOld:" + posOld + " posCur:" + posCur + " normal:" + hit.normal + " hit:" + hit.point + " radius:" + radius);
-                            ItemBall itemBall = hit.collider.GetComponent<ItemBall>();
-                            if (itemBall != null)
-                            {
-                                Vector3 reflectVecOther = Vector3.Reflect(itemBall.dirMove, hit.normal);
-                                float velocityNew = Utilities.GetVelcoityAfterCollide(velocity, itemBall.velocity, mass, itemBall.mass);
-                                float velocityNewOther = Utilities.GetVelcoityAfterCollide(itemBall.velocity, velocity, itemBall.mass, mass);
-                                velocity = velocityNew;
-                                itemBall.velocity = velocityNewOther;
-                                itemBall.dirMove = reflectVecOther;
-                            }
-                            dirMove = reflectVec;
+                        //    Vector3 reflectVec = Vector3.Reflect(dirMove, hit.normal);
+                        //    pointHit = new Vector2(hit.transform.position.x + hit.normal.x * (radius), hit.transform.position.y + hit.normal.y * (radius));
+                        //    //Debug.DrawLine(posOld - dirMove * 100, posCur, Color.red, Time.fixedDeltaTime);
+                        //    posCur.x = hit.transform.position.x + hit.normal.x * (radius + radius + radius*deltaTime);
+                        //    posCur.y = hit.transform.position.y + hit.normal.y * (radius + radius + +radius * deltaTime);
+                        //    //Debug.Log("------Collider name:" + name + " dirMove:" + dirMove + " reflectVec:" + reflectVec + " posOld:" + posOld + " posCur:" + posCur + " normal:" + hit.normal + " hit:" + hit.point + " radius:" + radius);
+                        //    ItemBall itemBall = hit.collider.GetComponent<ItemBall>();
+                        //    if (itemBall != null)
+                        //    {
+                        //        Vector3 reflectVecOther = Vector3.Reflect(itemBall.dirMove, hit.normal);
+                        //        float velocityNew = Utilities.GetVelcoityAfterCollide(velocity, itemBall.velocity, mass, itemBall.mass);
+                        //        float velocityNewOther = Utilities.GetVelcoityAfterCollide(itemBall.velocity, velocity, itemBall.mass, mass);
+                        //        velocity = velocityNew;
+                        //        itemBall.velocity = velocityNewOther;
+                        //        itemBall.dirMove = reflectVecOther;
+                        //    }
+                        //    dirMove = reflectVec;
 
 
-                            Debug.DrawLine(posCur, posCur - (Vector2)dirMove * 100, Color.red, Time.fixedDeltaTime);
-                            Debug.DrawLine(posCur, posCur + (Vector2)hit.normal * 100, Color.yellow, Time.fixedDeltaTime);
-                            Debug.DrawLine(posCur, posCur + (Vector2)reflectVec * 100, Color.green, Time.fixedDeltaTime);
-                        }
-                        else if (hit.collider.tag == "ItemLine")
+                        //    Debug.DrawLine(posCur, posCur - (Vector2)dirMove * 100, Color.red, Time.fixedDeltaTime);
+                        //    Debug.DrawLine(posCur, posCur + (Vector2)hit.normal * 100, Color.yellow, Time.fixedDeltaTime);
+                        //    Debug.DrawLine(posCur, posCur + (Vector2)reflectVec * 100, Color.green, Time.fixedDeltaTime);
+                        //}
+                        if (hit.collider.tag == "ItemLine")
                         {
                             ItemLine itemLine = hit.collider.GetComponent<ItemLine>();
                             //Debug.Log("va cham ne:" + itemLine);

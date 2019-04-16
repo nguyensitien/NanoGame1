@@ -8,6 +8,8 @@ using UnityEngine.Tilemaps;
 
 public class GameplayController : Singleton<GameplayController>
 {
+    [SerializeField]
+    private GameObject maskMapPrefab;
     public Vector2 sizeLine;
     [SerializeField]
     private Vector2 sizeBoard;
@@ -31,77 +33,108 @@ public class GameplayController : Singleton<GameplayController>
     private int originSizeBoard;
     [HideInInspector]
     public Tilemap tileMap;
-    private SpriteMask itemMaskScript;
-    
-    public List<ItemLineInfo> itemLineInfoList;
-    private Vector2[] points;
-    public Vector2[] GetPointsBoard()
+
+    public List<List<ItemLineInfo>> itemLineInfoList;
+    public Vector2[] GetPointsBoard(int index)
     {
-        
-        return points;
+
+        return pointsList[index];
     }
+    [HideInInspector]
+    public int indexMask = -1;
     private GameObject nodeMap;
     private ItemBall[] arrItemBall;
     private ConditionNode conditionMain;
+    private SpriteMask[] maskMapArr;
+    public List<Vector2[]> pointsList;
     private void Start()
     {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
-        //nodeMap = GameObject.Find("Node1");
+        //nodeMap = GameObject.Find("Node49");
         //GameObject mapPrefab = Resources.Load<GameObject>("Maps/Node" + 1);
         //GameObject nodeMap = Instantiate(mapPrefab);
         nodeMap = Instantiate(ObjectDataController.Instance.nodeMapFighting);
         conditionMain = nodeMap.GetComponent<ConditionNode>();
         nodeMap.transform.Find("Tilemap").GetComponent<TilemapRenderer>().maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
         arrItemBall = FindObjectsOfType<ItemBall>();
-        
+        CreateMaskMap(arrItemBall.Length);
         nodeMap.transform.localPosition = Vector3.zero;
         tileMap = nodeMap.transform.GetChild(0).GetComponent<Tilemap>();
-        itemMaskScript = itemMask.GetComponent<SpriteMask>();
-        itemLineInfoList = new List<ItemLineInfo>();
+        CreateIemInfoList(arrItemBall.Length);
         foreach (var pos in tileMap.cellBounds.allPositionsWithin)
         {
             Sprite sprite = tileMap.GetSprite(pos);
-            
+
             if (sprite != null)
             {
                 Vector2 p = new Vector2(pos.x * +sprite.bounds.size.x + sprite.bounds.size.x / 2, pos.y * sprite.bounds.size.y + sprite.bounds.size.y / 2);
-                
+
                 if (sprite.name == TypeLine.line_bot_left.ToString())
                 {
-                    ItemLineInfo itemLine = new ItemLineInfo(p,TypeLine.line_bot_left);
-                    itemLineInfoList.Add(itemLine);
+                    ItemLineInfo itemLine = new ItemLineInfo(p, TypeLine.line_bot_left);
+                    itemLineInfoList[0].Add(itemLine);
                 }
                 else if (sprite.name == TypeLine.line_bot_right.ToString())
                 {
                     ItemLineInfo itemLine = new ItemLineInfo(p, TypeLine.line_bot_right);
-                    itemLineInfoList.Add(itemLine);
+                    itemLineInfoList[0].Add(itemLine);
                 }
                 else if (sprite.name == TypeLine.line_top_left.ToString())
                 {
                     ItemLineInfo itemLine = new ItemLineInfo(p, TypeLine.line_top_left);
-                    itemLineInfoList.Add(itemLine);
+                    itemLineInfoList[0].Add(itemLine);
                 }
                 else if (sprite.name == TypeLine.line_top_right.ToString())
                 {
                     ItemLineInfo itemLine = new ItemLineInfo(p, TypeLine.line_top_right);
-                    itemLineInfoList.Add(itemLine);
+                    itemLineInfoList[0].Add(itemLine);
                 }
             }
         }
-       
-        itemLineInfoList = SortPoints(itemLineInfoList);
+
+        
        
         Init();
-        
+
+    }
+
+    private void CreateIemInfoList(int length)
+    {
+        itemLineInfoList = new List<List<ItemLineInfo>>();
+        pointsList = new List<Vector2[]>();
+        triangleList = new Triangulator[length];
+        for (int i = 0; i < length; i++)
+        {
+            itemLineInfoList.Add(new List<ItemLineInfo>());
+            pointsList.Add(new Vector2[0]);
+            triangleList[i] = null;
+        }
+    }
+
+    private void CreateMaskMap(int length)
+    {
+        maskMapArr = new SpriteMask[length];
+        for (int i = 0; i < length; i++)
+        {
+            GameObject maskObj = GameObject.Instantiate(maskMapPrefab);
+            maskObj.SetActive(false);
+            maskObj.transform.SetParent(boardTran);
+            maskMapArr[i] = maskObj.GetComponent<SpriteMask>();
+        }
     }
 
     private void InitPoints()
     {
         int length = itemLineInfoList.Count;
-        points = new Vector2[length];
         for (int i = 0; i < length; i++)
         {
-            points[i] = itemLineInfoList[i].point;
+            List<ItemLineInfo> itemList = itemLineInfoList[i];
+            int lengthPoint = itemList.Count;
+            pointsList[i] = new Vector2[lengthPoint];
+            for (int j = 0; j < lengthPoint; j++)
+            {
+                pointsList[i][j] = itemList[j].point;
+            }
         }
     }
 
@@ -115,6 +148,22 @@ public class GameplayController : Singleton<GameplayController>
         return result;
     }
 
+    public List<Vector2[]> ClonePointsList()
+    {
+        List<Vector2[]> result = new List<Vector2[]>();
+        for (int i = 0; i < pointsList.Count; i++)
+        {
+            Vector2[] ps = pointsList[i];
+            Vector2[] psTmp = new Vector2[ps.Length];
+            
+            for (int j = 0; j < ps.Length; j++)
+            {
+                psTmp[j] = ps[j];
+            }
+            result.Add(psTmp);
+        }
+        return result;
+    }
     
     public void Init()
     {
@@ -123,8 +172,15 @@ public class GameplayController : Singleton<GameplayController>
         typeLineCur = TypeLineFind.vertical;
         ShowTypeLinePreview();
         InitPoints();
-        points = CreatePointsBorder(points);
-        triangle = new Triangulator(points);
+        Vector2[] points = GameplayController.Instance.GetPointsBoard(0);
+        
+        List<Vector2[]> pointsListClone = ClonePointsList();
+        List<Vector2[]> pointsListTmp = CreatePointsBorder(pointsListClone);
+        points = GameplayController.Instance.GetPointsBoard(0);
+        
+        Triangulator triangle = new Triangulator(pointsListTmp[0]);
+        triangleList[0] = (triangle);
+        maskMapArr[0].gameObject.SetActive(true);
         bgBoard.localPosition = new Vector2(triangle.centerX,triangle.centerY);
         bgBoard.localScale = new Vector2(triangle.width/100,triangle.height/100);
         colors = new Color[triangle.width*triangle.height];
@@ -133,111 +189,119 @@ public class GameplayController : Singleton<GameplayController>
         pointCur = 0;
         pointTarget = (int)(originSizeBoard*conditionMain.percentWin);
         InitItemMask();
-        
-        
 
     }
-    private Triangulator triangle;
+    private Triangulator[] triangleList;
     public SpriteRenderer spriteRenderern;
     Color[] colors;
-    private Sprite spriteMask;
+    private Sprite[] spriteMaskList;
     private int minXOri, minYOri;
+
+   
+
+    private bool isInited;
     private void InitTriangle()
     {
 
         InitPoints();
-        Vector2[] pointsBorder = CreatePointsBorder(points);
-        triangle = new Triangulator(pointsBorder);
-
-        //test
-
-        int minX = (int)triangle.minX;
-
-        int minY = (int)triangle.minY;
-        if (spriteMask == null)
+        List<Vector2[]> pointsListClone = ClonePointsList();
+        List<Vector2[]> pointsBorderList = CreatePointsBorder(pointsListClone);
+        for (int i = 0; i < pointsBorderList.Count; i++)
         {
-            int maxX = (int)triangle.maxX;
-            minXOri = (int)triangle.minX;
-            minYOri = (int)triangle.minY;
-            int maxY = (int)triangle.maxY;
-            int width = (int)(maxX - minX);
-            int height = (int)(maxY - minY);
-            Vector2 center = new Vector2((maxX + minX + sizeLine.x / 2) / 2.0f, (maxY + minY + sizeLine.x / 2) / 2.0f);
-            Texture2D tex2D = new Texture2D(width + (int)sizeLine.x / 2, height + (int)sizeLine.x / 2);
-            spriteMask = Sprite.Create(tex2D, new Rect(0, 0, width + sizeLine.x / 2, height + sizeLine.x / 2), Vector2.one * 0.5f, 100, 0, SpriteMeshType.Tight);
-            itemMaskScript.transform.position = center;
-        }
+            Vector2[] pointsBorder = pointsBorderList[i];
+            if (pointsBorder.Length == 0) continue;
+            Triangulator triangle = new Triangulator(pointsBorder);
+            //test
+            int minX = (int)triangle.minX;
 
-        //Debug.Log("width:"+width+" height:"+height);
-        //Texture2D tex2D = new Texture2D(width + (int)sizeLine.x / 2, height + (int)sizeLine.x / 2);
-        //Sprite sprite = Sprite.Create(tex2D, new Rect(0, 0, width+sizeLine.x / 2, height + sizeLine.x/2), Vector2.one * 0.5f,100,0,SpriteMeshType.Tight);
-        ushort[] tris = new ushort[triangle.Triangulate().Length];
-        int[] trisss = triangle.Triangulate();
-        
-        //Vector2[] pointsBorder = points ;
-        Vector2[] verticles = new Vector2[pointsBorder.Length];
-        Vector2 ori = new Vector2(minXOri, minYOri);
-        //Debug.Log("verticles---------------------:"+points.Length+" width:"+width+" height:"+height+"minX:"+minX+" maxX:"+maxX+" minY:"+minY+" maxY:"+maxY);
-        for (int i = 0; i < pointsBorder.Length; i++)
-        {
-            //Debug.Log("pointBorder:"+i+":"+pointsBorder[i]+" - "+ori);
-            verticles[i] = (pointsBorder[i] - ori);
+            int minY = (int)triangle.minY;
+            
+            triangleList[i] = triangle;
+            
+            ushort[] tris = new ushort[triangle.Triangulate().Length];
+            int[] trisss = triangle.Triangulate();
+            if (isInited == false)
+            {
+                minXOri = (int)triangle.minX;
+                minYOri = (int)triangle.minY;
+            }
+            Vector2[] verticles = new Vector2[pointsBorder.Length];
+            Vector2 ori = new Vector2(minXOri, minYOri);
+            for (int j = 0; j < pointsBorder.Length; j++)
+            {
+                verticles[j] = (pointsBorder[j] - ori);
+            }
+            for (int j = 0; j < tris.Length; j++)
+            {
+                tris[j] = (ushort)(trisss[j]);
+            }
+            if (isInited == false)
+            {
+                isInited = true;
+                int maxX = (int)triangle.maxX;
+                
+                int maxY = (int)triangle.maxY;
+                int width = (int)(maxX - minX);
+                int height = (int)(maxY - minY);
+                Vector2 center = new Vector2((maxX + minX + sizeLine.x / 2) / 2.0f, (maxY + minY + sizeLine.x / 2) / 2.0f);
+                
+                for (int j = 0; j < maskMapArr.Length; j++)
+                {
+                    Texture2D tex2D = new Texture2D(width + (int)sizeLine.x / 2, height + (int)sizeLine.x / 2);
+                    Sprite spriteMask = Sprite.Create(tex2D, new Rect(0, 0, width + sizeLine.x / 2, height + sizeLine.x / 2), Vector2.one * 0.5f, 100, 0, SpriteMeshType.Tight);
+                    maskMapArr[j].gameObject.transform.position = center;
+                    
+                    maskMapArr[j].sprite = spriteMask;
+                    spriteMask.OverrideGeometry(verticles, tris);
+
+                }
+                return;
+            }
+            Sprite spriteTmp = maskMapArr[i].sprite;
+            spriteTmp.OverrideGeometry(verticles, tris);
         }
-        //Debug.Log("triangles------------------------:"+tris.Length);
-        for (int i = 0; i < tris.Length; i++)
-        {
-            tris[i] = (ushort)(trisss[i]);
-            //Debug.Log(i + ":" + tris[i]);
-        }
-        //for (int i = 0; i < tris.Length; i += 3)
-        //{
-        //    //Debug.Log("draw:" + i);
-        //    Debug.DrawLine(pointsBorder[tris[i]], pointsBorder[tris[i + 1]], Color.red, 10);
-        //    Debug.DrawLine(pointsBorder[tris[i + 1]], pointsBorder[tris[i + 2]], Color.red, 10);
-        //    Debug.DrawLine(pointsBorder[tris[i + 2]], pointsBorder[tris[i]], Color.red, 10);
-        //}
-        //Debug.Log("verticles:" + verticles.Length+ " tris" + tris.Length+" minX:"+minX+" minY:"+minY+" width:"+width+" height:"+height);
-        spriteMask.OverrideGeometry(verticles, tris);
-        //sprite.OverrideGeometry(sprite.vertices, sprite.triangles);
-        itemMaskScript.sprite = spriteMask;
-        //itemMaskScript.transform.position = center;
-        //spriteRenderern.sprite = sprite;
-        //spriteRenderern.transform.position = center;
     }
 
-    private Vector2[] CreatePointsBorder(Vector2[] pointsTmp)
+    private List<Vector2[]> CreatePointsBorder(List<Vector2[]> pointsTmp)
     {
-        Vector2[] result = new Vector2[pointsTmp.Length];
-        for (int i = 0; i < result.Length; i++)
+        List<Vector2[]> result = new List<Vector2[]>();
+        for (int i = 0; i < pointsTmp.Count; i++)
         {
-            Vector2 pCenter = pointsTmp[i];
-            Vector2 pTopRight = new Vector2(pCenter.x+ (sizeLine.x / 2), pCenter.y +  (sizeLine.x / 2));
-            Vector2 pTopLeft = new Vector2(pCenter.x- (sizeLine.x / 2), pCenter.y + (sizeLine.x / 2));
-            Vector2 pBotLeft = new Vector2(pCenter.x-  (sizeLine.x / 2), pCenter.y - (sizeLine.x / 2));
-            Vector2 pBotRight = new Vector2(pCenter.x+  (sizeLine.x / 2), pCenter.y - (sizeLine.x / 2));
-            List<Vector2> pointsOut = new List<Vector2>();
-            List<Vector2> pointsIn = new List<Vector2>();
-            if (Utilities.IsPointInPolygon(pTopRight, pointsTmp)) pointsIn.Add(pTopRight);
-            else pointsOut.Add(pTopRight);
-
-            if (Utilities.IsPointInPolygon(pTopLeft, pointsTmp)) pointsIn.Add(pTopLeft);
-            else pointsOut.Add(pTopLeft);
-
-            if (Utilities.IsPointInPolygon(pBotLeft, pointsTmp)) pointsIn.Add(pBotLeft);
-            else pointsOut.Add(pBotLeft);
-
-            if (Utilities.IsPointInPolygon(pBotRight, pointsTmp)) pointsIn.Add(pBotRight);
-            else pointsOut.Add(pBotRight);
-
-            if (pointsIn.Count == 1)
+            Vector2[] points = pointsTmp[i];
+            int length = points.Length;
+            for (int j = 0; j < length; j++)
             {
-                result[i] = pCenter + (pCenter - pointsIn[0]) * 1;
+                Vector2 pCenter = points[j];
+                Vector2 pTopRight = new Vector2(pCenter.x + (sizeLine.x / 2), pCenter.y + (sizeLine.x / 2));
+                Vector2 pTopLeft = new Vector2(pCenter.x - (sizeLine.x / 2), pCenter.y + (sizeLine.x / 2));
+                Vector2 pBotLeft = new Vector2(pCenter.x - (sizeLine.x / 2), pCenter.y - (sizeLine.x / 2));
+                Vector2 pBotRight = new Vector2(pCenter.x + (sizeLine.x / 2), pCenter.y - (sizeLine.x / 2));
+                List<Vector2> pointsOut = new List<Vector2>();
+                List<Vector2> pointsIn = new List<Vector2>();
+                if (Utilities.IsPointInPolygon(pTopRight, points)) pointsIn.Add(pTopRight);
+                else pointsOut.Add(pTopRight);
+
+                if (Utilities.IsPointInPolygon(pTopLeft, points)) pointsIn.Add(pTopLeft);
+                else pointsOut.Add(pTopLeft);
+
+                if (Utilities.IsPointInPolygon(pBotLeft, points)) pointsIn.Add(pBotLeft);
+                else pointsOut.Add(pBotLeft);
+
+                if (Utilities.IsPointInPolygon(pBotRight, points)) pointsIn.Add(pBotRight);
+                else pointsOut.Add(pBotRight);
+
+                if (pointsIn.Count == 1)
+                {
+                    points[j] = pCenter + (pCenter - pointsIn[0]) * 1;
+                }
+                else if (pointsOut.Count == 1)
+                {
+                    points[j] = pointsOut[0];
+                }
             }
-            else if (pointsOut.Count == 1)
-            {
-                result[i] = pointsOut[0];
-            }
+            result.Add(points);
         }
+        
         return result;
     }
 
@@ -331,12 +395,23 @@ public class GameplayController : Singleton<GameplayController>
 
     private Coroutine CorouUpdateBall;
 
-
+    private float GetAreaAll()
+    {
+        float result = 0.0f;
+        for (int i = 0; i < triangleList.Length; i++)
+        {
+            if (triangleList[i] != null)
+            {
+                result += triangleList[i].Area();
+            }
+        }
+        return result;
+    }
     private void InitItemMask()
     {
-        pointsComplete = new List<Vector2>();
         InitTriangle();
-        pointCur = originSizeBoard - (int)triangle.Area();
+        pointCur = originSizeBoard - (int)GetAreaAll();
+        pointCur = Mathf.Max(0,pointCur);
         UIGameplayController.Instance.UpdatePoint();
         if (pointCur >= pointTarget)
         {
@@ -344,12 +419,7 @@ public class GameplayController : Singleton<GameplayController>
         }
 
     }
-
-    public Triangulator GetBoard()
-    {
-        return triangle;
-    }
-
+    
     public void CreateLine(Vector3 posCreate)
     {
         canCreateLine = false;
@@ -584,20 +654,23 @@ public class GameplayController : Singleton<GameplayController>
         itemLineSketchingList.Add(itemlineSketching);
         if (pointsComplete.Count == 2)
         {
-            
-            for(int i = 0; i < itemLineSketchingList.Count; i++)
+
+            for (int i = 0; i < itemLineSketchingList.Count; i++)
             {
                 itemLineSketchingList[i].isCompleteSketching = true;
 
             }
             canCreateLine = true;
+            bool isCreateNewMask = false;
+            List<ItemLineInfo> itemLineInfoListTmpTmp = new List<ItemLineInfo>(itemLineInfoList[indexMask]);
+            int numCreated = 0;
             for (int i = 0; i < 2; i++)
             {
 
                 for (int typeAdd = 0; typeAdd < 4; typeAdd++)
                 {
                     //Debug.Log("Process :"+i+"-"+typeAdd);
-                    List<ItemLineInfo> itemLineInfoListTmp = new List<ItemLineInfo>(itemLineInfoList);
+                    List<ItemLineInfo> itemLineInfoListTmp = new List<ItemLineInfo>(itemLineInfoListTmpTmp);
                     if (typeLineCur.Equals(TypeLineFind.horizontal))
                     {
                         if (i == 0)
@@ -614,24 +687,38 @@ public class GameplayController : Singleton<GameplayController>
                         }
                         itemLineInfoListTmp = SortPoints(itemLineInfoListTmp);
                         Vector2[] pointsTmp = ParsePointFromItemInfo(itemLineInfoListTmp);
-                        if (itemLineInfoListTmp.Count >= 4 && Utilities.IsPointInPolygon(arrItemBall[0].transform.position, pointsTmp))
+                        if (itemLineInfoListTmp.Count >= 4 && CheckAnyBallInArena(pointsTmp))
                         {
-                            CompleteReCreateBoard(itemLineInfoListTmp);
-                            return;
+                            for (int j = 0; j < itemLineInfoListTmp.Count; j++)
+                            {
+                                itemLineInfoListTmpTmp.Remove(itemLineInfoListTmp[j]);
+                            }
+                            CompleteReCreateBoard(indexMask, itemLineInfoListTmp, isCreateNewMask);
+                            numCreated++;
+                            isCreateNewMask = true;
+                            if (numCreated == 2)
+                            {
+                                indexMask = -1;
+                                ChangeTypeSketching();
+                                itemLineSketchingList = new List<ItemLine>();
+                                pointsComplete = new List<Vector2>();
+                                return;
+                            }
                         }
                         else
                         {
                             //Debug.Log("ball khong nam trong points:" + itemLineInfoListTmp.Count);
                             for (int j = 0; j < itemLineInfoListTmp.Count; j++)
                             {
-                                itemLineInfoList.Remove(itemLineInfoListTmp[j]);
+                                itemLineInfoListTmpTmp.Remove(itemLineInfoListTmp[j]);
                             }
                             //itemLineInfoList.Remove(itemLineInfoListTmp[itemLineInfoListTmp.Count - 1]);
-                           // Debug.Log("after remove:" + itemLineInfoList.Count);
+                            // Debug.Log("after remove:" + itemLineInfoList.Count);
                         }
                     }
                     else
                     {
+                        
                         if (i == 0)
                         {
                             //cat ben phai
@@ -645,20 +732,34 @@ public class GameplayController : Singleton<GameplayController>
 
                             AddNewPointBoard(TypeRemoveLine.Left, itemLineInfoListTmp, typeAdd);
                         }
+                        //Debug.Log("tiep tuc cat:" + i + ":" + typeAdd + ":" + itemLineInfoListTmp.Count );
                         itemLineInfoListTmp = SortPoints(itemLineInfoListTmp);
 
                         Vector2[] pointsTmp = ParsePointFromItemInfo(itemLineInfoListTmp);
-                        if (itemLineInfoListTmp.Count >= 4 && Utilities.IsPointInPolygon(arrItemBall[0].transform.position, pointsTmp))
+                        
+                        if (itemLineInfoListTmp.Count >= 4 && CheckAnyBallInArena(pointsTmp))
                         {
-                            CompleteReCreateBoard(itemLineInfoListTmp);
-                            return;
+                            for (int j = 0; j < itemLineInfoListTmp.Count; j++)
+                            {
+                                itemLineInfoListTmpTmp.Remove(itemLineInfoListTmp[j]);
+                            }
+                            CompleteReCreateBoard(indexMask, itemLineInfoListTmp, isCreateNewMask);
+                            numCreated++;
+                            isCreateNewMask = true;
+                            if (numCreated == 2) {
+                                indexMask = -1;
+                                ChangeTypeSketching();
+                                itemLineSketchingList = new List<ItemLine>();
+                                pointsComplete = new List<Vector2>();
+                                return;
+                            }
                         }
                         else
                         {
                             //Debug.Log("ball khong nam trong points:" + itemLineInfoListTmp.Count);
                             for (int j = 0; j < itemLineInfoListTmp.Count; j++)
                             {
-                                itemLineInfoList.Remove(itemLineInfoListTmp[j]);
+                                itemLineInfoListTmpTmp.Remove(itemLineInfoListTmp[j]);
                             }
                             //itemLineInfoList.Remove(itemLineInfoListTmp[itemLineInfoListTmp.Count-1]);
                             //Debug.Log("after remove:" + itemLineInfoList.Count);
@@ -666,42 +767,72 @@ public class GameplayController : Singleton<GameplayController>
                     }
                 }
             }
-            
             //itemLineInfoList = SortPoints(itemLineInfoList);
             //
             //Debug.Log("----After Sort-----");
-            
-            
+
+            indexMask = -1;
+            ChangeTypeSketching();
+            itemLineSketchingList = new List<ItemLine>();
+            pointsComplete = new List<Vector2>();
+        }
+
+    }
+
+    private bool CheckAllBallInArena(int index,Vector2[] points)
+    {
+        for (int i = 0; i < arrItemBall.Length; i++)
+        {
+            if (Utilities.IsPointInPolygon((Vector2)arrItemBall[i].transform.position, points) == false)
+                return false;
+        }
+        return true;
+    }
+
+    private bool CheckAnyBallInArena(Vector2[] points)
+    {
+        for (int i = 0; i < arrItemBall.Length; i++)
+        {
+            if (Utilities.IsPointInPolygon((Vector2)arrItemBall[i].transform.position, points))
+                return true;
+        }
+        return false;
+    }
+    private void CompleteReCreateBoard(int index,List<ItemLineInfo> itemLineInfoListTmp,bool isCreateNewMask)
+    {
+        //Debug.Log("CompleteReCreateBoard:"+isCreateNewMask);
+        if (isCreateNewMask == false)
+        {
+            itemLineInfoList[index] = new List<ItemLineInfo>(itemLineInfoListTmp);
+            InitItemMask();
+
+        }
+        else
+        {
+            for (int i = 0; i < itemLineInfoList.Count; i++)
+            {
+                if (itemLineInfoList[i].Count == 0)
+                {
+                    itemLineInfoList[i] = new List<ItemLineInfo>(itemLineInfoListTmp);
+                    InitItemMask();
+                    maskMapArr[i].gameObject.SetActive(true);
+                    return;
+                }
+            }
         }
         
     }
 
-    private void CompleteReCreateBoard(List<ItemLineInfo> itemLineInfoListTmp)
-    {
-        //Debug.Log("nam trong ne");
-        itemLineInfoList = new List<ItemLineInfo>(itemLineInfoListTmp);
-        //for (int j = 0; j < itemLineInfoList.Count; j++)
-        //{
-        //    Debug.Log(j + ":" + itemLineInfoList[j].point + ":" + itemLineInfoList[j].typeLine);
-        //}
-        InitItemMask();
-        ChangeTypeSketching();
-        itemLineSketchingList = new List<ItemLine>();
-        pointsComplete = new List<Vector2>();
-        CheckConditionEndGame();
-        return;
-    }
-
-    private void CheckConditionEndGame()
-    {
-        for (int i = 0; i < arrItemBall.Length; i++)
-        {
-            if (Utilities.IsPointInPolygon(arrItemBall[i].transform.position, points) == false)
-            {
-                EndGame(false);
-            }
-        }
-    }
+    //private void CheckConditionEndGame()
+    //{
+    //    for (int i = 0; i < arrItemBall.Length; i++)
+    //    {
+    //        if (Utilities.IsPointInPolygon(arrItemBall[i].transform.position, points) == false)
+    //        {
+    //            EndGame(false);
+    //        }
+    //    }
+    //}
 
     public List<ItemLineInfo> SortPoints(List<ItemLineInfo> itemLineInfoListTmp)
     {
@@ -1015,13 +1146,15 @@ public class GameplayController : Singleton<GameplayController>
         return result;
     }
 
-    public Vector2 RoundPosCreateLine(Vector2 posMouse)
+    public Vector2 RoundPosCreateLine(int indexMask,Vector2 posMouse)
     {
+        Vector2[] points = pointsList[indexMask];
+       
         if (typeLineCur == TypeLineFind.vertical)
         {
             for (int i = 0; i < points.Length; i++)
             {
-                //Debug.Log("vertical:"+i+":"+points[i]+":"+posMouse);
+                //Debug.Log("vertical:" + i + ":" + points[i] + ":" + posMouse);
                 if (Mathf.Abs(posMouse.x - points[i].x) <= sizeLine.x)
                 {
                     //Debug.Log("RoundPosCreateLine:"+ new Vector2(points[i].x, posMouse.y));
