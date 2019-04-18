@@ -9,7 +9,7 @@ using UnityEngine.Tilemaps;
 public class GameplayController : Singleton<GameplayController>
 {
     [SerializeField]
-    private GameObject maskMapPrefab;
+    private GameObject maskMapPrefab,ballTrailPrefab;
     public Vector2 sizeLine;
     [SerializeField]
     private Vector2 sizeBoard;
@@ -49,14 +49,17 @@ public class GameplayController : Singleton<GameplayController>
     public List<Vector2[]> pointsList;
     private void Start()
     {
+        //Application.targetFrameRate = 10;
+        //QualitySettings.vSyncCount = 0;
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
-        //nodeMap = GameObject.Find("Node46");
+        //nodeMap = GameObject.Find("Node26");
         //GameObject mapPrefab = Resources.Load<GameObject>("Maps/Node" + 1);
         //GameObject nodeMap = Instantiate(mapPrefab);
         nodeMap = Instantiate(ObjectDataController.Instance.nodeMapFighting);
         conditionMain = nodeMap.GetComponent<ConditionNode>();
         nodeMap.transform.Find("Tilemap").GetComponent<TilemapRenderer>().maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
         arrItemBall = FindObjectsOfType<ItemBall>();
+        CreateTrailBallList();
         CreateMaskMap(arrItemBall.Length);
         nodeMap.transform.localPosition = Vector3.zero;
         tileMap = nodeMap.transform.GetChild(0).GetComponent<Tilemap>();
@@ -97,6 +100,16 @@ public class GameplayController : Singleton<GameplayController>
        
         Init(itemLineInfoListTmp);
 
+    }
+
+    private void CreateTrailBallList()
+    {
+        for (int i = 0; i < arrItemBall.Length; i++)
+        {
+            Transform ballTrail = Instantiate(ballTrailPrefab,arrItemBall[i].transform).transform;
+            ballTrail.transform.localPosition = Vector3.zero;
+        }
+      
     }
 
     private void CreateIemInfoList(int length)
@@ -893,11 +906,7 @@ public class GameplayController : Singleton<GameplayController>
 
     public List<ItemLineInfo> SortPoints(List<ItemLineInfo> itemLineInfoListTmp)
     {
-        //Debug.Log("SortPoints:"+itemLineInfoListTmp.Count);
-        //for (int i = 0; i < itemLineInfoListTmp.Count; i++)
-        //{
-        //    Debug.Log(i + ":" + itemLineInfoListTmp[i].point + ":" + itemLineInfoListTmp[i].typeLine);
-        //}
+        
         if (itemLineInfoListTmp.Count <= 0) return new List<ItemLineInfo>();
         List<ItemLineInfo> result = new List<ItemLineInfo>();
         ItemLineInfo itemLineCur = itemLineInfoListTmp[0];
@@ -1090,7 +1099,7 @@ public class GameplayController : Singleton<GameplayController>
                         //Debug.Log("dasdas:" + i + ":" + itemLineTmp.point + ":" + itemLineTmp.typeLine);
                         if (itemLineTmp.typeLine == TypeLine.line_top_right || itemLineTmp.typeLine == TypeLine.line_top_left)
                         {
-                            if ((Mathf.Abs(itemLineTmp.point.x - itemLine.point.x) <= 1) && itemLineTmp.point.y < itemLine.point.y)
+                            if ((Mathf.Abs(itemLineTmp.point.x - itemLine.point.x) <= Utilities.SAISO) && itemLineTmp.point.y < itemLine.point.y)
                                 result.Add(itemLineTmp);
                         }
                     }
@@ -1108,7 +1117,7 @@ public class GameplayController : Singleton<GameplayController>
                         //Debug.Log("dasdas:" + i + ":" + itemLineTmp.point + ":" + itemLineTmp.typeLine);
                         if (itemLineTmp.typeLine == TypeLine.line_top_left || itemLineTmp.typeLine == TypeLine.line_bot_left)
                         {
-                            if ((Mathf.Abs(itemLineTmp.point.y - itemLine.point.y) <= 1) && itemLineTmp.point.x > itemLine.point.x)
+                            if ((Mathf.Abs(itemLineTmp.point.y - itemLine.point.y) <= Utilities.SAISO) && itemLineTmp.point.x > itemLine.point.x)
                                 result.Add(itemLineTmp);
                         }
                     }
@@ -1122,7 +1131,7 @@ public class GameplayController : Singleton<GameplayController>
                         //Debug.Log("dasdas:" + i + ":" + itemLineTmp.point + ":" + itemLineTmp.typeLine);
                         if (itemLineTmp.typeLine == TypeLine.line_top_right || itemLineTmp.typeLine == TypeLine.line_top_left)
                         {
-                            if ((Mathf.Abs(itemLineTmp.point.x - itemLine.point.x) <= 1) && itemLineTmp.point.y < itemLine.point.y)
+                            if ((Mathf.Abs(itemLineTmp.point.x - itemLine.point.x) <= Utilities.SAISO) && itemLineTmp.point.y < itemLine.point.y)
                                 result.Add(itemLineTmp);
                         }
                     }
@@ -1140,7 +1149,7 @@ public class GameplayController : Singleton<GameplayController>
                         //Debug.Log("dasdas:" + i + ":" + itemLineTmp.point + ":" + itemLineTmp.typeLine);
                         if (itemLineTmp.typeLine == TypeLine.line_top_left || itemLineTmp.typeLine == TypeLine.line_bot_left)
                         {
-                            if ((Mathf.Abs(itemLineTmp.point.y - itemLine.point.y) <= 1) && itemLineTmp.point.x > itemLine.point.x)
+                            if ((Mathf.Abs(itemLineTmp.point.y - itemLine.point.y) <= Utilities.SAISO) && itemLineTmp.point.x > itemLine.point.x)
                                 result.Add(itemLineTmp);
                         }
                     }
@@ -1154,7 +1163,7 @@ public class GameplayController : Singleton<GameplayController>
                         //Debug.Log("dasdas:" + i + ":" + itemLineTmp.point + ":" + itemLineTmp.typeLine);
                         if (itemLineTmp.typeLine == TypeLine.line_bot_left || itemLineTmp.typeLine == TypeLine.line_bot_right)
                         {
-                            if ((Mathf.Abs(itemLineTmp.point.x - itemLine.point.x) <= 1) && itemLineTmp.point.y > itemLine.point.y)
+                            if ((Mathf.Abs(itemLineTmp.point.x - itemLine.point.x) <= Utilities.SAISO) && itemLineTmp.point.y > itemLine.point.y)
                                 result.Add(itemLineTmp);
                         }
                     }
@@ -1172,7 +1181,7 @@ public class GameplayController : Singleton<GameplayController>
                         //Debug.Log("dasdas:" + i + ":" + itemLineTmp.point + ":" + itemLineTmp.typeLine);
                         if (itemLineTmp.typeLine == TypeLine.line_top_right || itemLineTmp.typeLine == TypeLine.line_bot_right)
                         {
-                            if ((Mathf.Abs(itemLineTmp.point.y - itemLine.point.y) <= 1) && itemLineTmp.point.x < itemLine.point.x)
+                            if ((Mathf.Abs(itemLineTmp.point.y - itemLine.point.y) <= Utilities.SAISO) && itemLineTmp.point.x < itemLine.point.x)
                                 result.Add(itemLineTmp);
                         }
                     }
@@ -1187,7 +1196,7 @@ public class GameplayController : Singleton<GameplayController>
                         if (itemLineTmp.typeLine == TypeLine.line_bot_left || itemLineTmp.typeLine == TypeLine.line_bot_right)
                         {
                             //Debug.Log("vao day chu ha:" + itemLineTmp.point.x + "==" + itemLine.point.x + " && " + itemLineTmp.point.y + ">" + itemLine.point.y);
-                            if ((Mathf.Abs(itemLineTmp.point.x - itemLine.point.x) <= 1) && itemLineTmp.point.y > itemLine.point.y)
+                            if ((Mathf.Abs(itemLineTmp.point.x - itemLine.point.x) <= Utilities.SAISO) && itemLineTmp.point.y > itemLine.point.y)
                                 result.Add(itemLineTmp);
                         }
                     }

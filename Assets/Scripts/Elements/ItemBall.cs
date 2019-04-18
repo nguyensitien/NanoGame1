@@ -8,6 +8,7 @@ public class ItemBall : MonoBehaviour
     private int[] arrAngleRandom;
     
     public float velocity;
+    [HideInInspector]
     public float mass;
     private bool isRolling;
     private Vector2 dirMove = Vector2.zero;
@@ -35,19 +36,25 @@ public class ItemBall : MonoBehaviour
     private float dist;
 
     private Vector2 pointHit;
-    private void OnDrawGizmos()
-    {
-        if(name == "ItemBall")
-        Gizmos.color = Color.red;
-        else
-            Gizmos.color = Color.blue;
-        Gizmos.DrawCube(pointHit, Vector2.one);
-    }
+    //private void OnDrawGizmos()
+    //{
+    //    if(name == "ItemBall")
+    //    Gizmos.color = Color.red;
+    //    else
+    //        Gizmos.color = Color.blue;
+    //    Gizmos.DrawCube(pointHit, Vector2.one);
+    //}
 
     private Vector2 posOld;
     private float deltaTime;
-    private RaycastHit2D[] hits = new RaycastHit2D[4];
+    private RaycastHit2D[] hits = new RaycastHit2D[6];
     private RaycastHit2D hit;
+    [HideInInspector]
+    public Transform myTran;
+    private void Awake()
+    {
+        myTran = transform;
+    }
     public void UpdateMove()
     {
         //if (GameplayController.Instance.isEndGame) return;
@@ -133,10 +140,10 @@ public class ItemBall : MonoBehaviour
 
                                 dirMove = reflectVec;
                             }
+                            break;
                             
                         }
                        
-                        break;
                     }
                    
                 }

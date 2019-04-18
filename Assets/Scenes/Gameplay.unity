@@ -7273,6 +7273,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isDontDestroyOnLoad: 0
   maskMapPrefab: {fileID: 544880626}
+  ballTrailPrefab: {fileID: 1012856246211314, guid: d71937855646d444f8f66a7269bcbca4,
+    type: 2}
   sizeLine: {x: 10, y: 810}
   sizeBoard: {x: 800, y: 800}
   boardTran: {fileID: 2094962244}
