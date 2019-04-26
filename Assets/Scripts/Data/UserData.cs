@@ -6,10 +6,11 @@ using UnityEngine;
 public class UserData {
 
     public int idNodeHighest;
-
-    public UserData(int idNodeHighest = 1)
+    public int attemptNodeCur;
+    public UserData(int idNodeHighest = 1,int attackNodeCur = 0)
     {
         this.idNodeHighest = idNodeHighest;
+        this.attemptNodeCur = attackNodeCur;
     }
 
     

@@ -16,10 +16,14 @@ public class ItemBall : MonoBehaviour
     public Vector2 posCur;
     private CircleCollider2D circleHit;
     private float radius;
-    private void Start()
+    [HideInInspector]
+    public SpriteRenderer spriteRenderer;
+    private void Awake()
     {
+        spriteRenderer = GetComponent<SpriteRenderer>();
         circleHit = GetComponent<CircleCollider2D>();
-        radius = circleHit.radius * transform.localScale.x; ;
+        radius = circleHit.radius * transform.localScale.x;
+        myTran = transform;
     }
     public void Init()
     {
@@ -51,83 +55,65 @@ public class ItemBall : MonoBehaviour
     private RaycastHit2D hit;
     [HideInInspector]
     public Transform myTran;
-    private void Awake()
-    {
-        myTran = transform;
-    }
+    
     public void UpdateMove()
     {
         //if (GameplayController.Instance.isEndGame) return;
-        if (isRolling)
+        deltaTime = Time.deltaTime;
+        posCur += dirMove * velocity * deltaTime;
+
+        dist = (posCur - posOld).magnitude;
+        int result = Physics2D.CircleCastNonAlloc(posOld, radius, dirMove, hits, dist, layerMask);
+        //Debug.Log("name:" + name + " dirMove:" + dirMove + " posOld:" + posOld + " posCur:" + posCur + " normal:" + hit.normal + " hit:" + hit.point + " radius:" + radius);
+
+        for (int i = 0; i < result; i++)
         {
-            deltaTime = Time.deltaTime;
-            posCur += dirMove * velocity * deltaTime;
-
-            dist = (posCur - posOld).magnitude;
-            int result = Physics2D.CircleCastNonAlloc(posOld, radius, dirMove, hits, dist, layerMask);
-            //Debug.Log("name:" + name + " dirMove:" + dirMove + " posOld:" + posOld + " posCur:" + posCur + " normal:" + hit.normal + " hit:" + hit.point + " radius:" + radius);
-
-            for (int i = 0; i < result; i++)
+            hit = hits[i];
+            //Debug.Log("name:" + name + " dirMove:" + dirMove + " posOld:" + posOld + " posCur:" + posCur + " normal:" + hit.normal + " hit:" + hit.point);
+            if (hit.collider != null)
             {
-                hit = hits[i];
-                //Debug.Log("name:" + name + " dirMove:" + dirMove + " posOld:" + posOld + " posCur:" + posCur + " normal:" + hit.normal + " hit:" + hit.point);
-                if (hit.collider != null)
+                if (hit.collider.gameObject != gameObject)
                 {
-                    if (hit.collider.gameObject != gameObject)
+
+                    //if (hit.collider.tag == "ItemBall" )
+                    //{
+
+                    //    Vector3 reflectVec = Vector3.Reflect(dirMove, hit.normal);
+                    //    pointHit = new Vector2(hit.transform.position.x + hit.normal.x * (radius), hit.transform.position.y + hit.normal.y * (radius));
+                    //    //Debug.DrawLine(posOld - dirMove * 100, posCur, Color.red, Time.fixedDeltaTime);
+                    //    posCur.x = hit.transform.position.x + hit.normal.x * (radius + radius + radius*deltaTime);
+                    //    posCur.y = hit.transform.position.y + hit.normal.y * (radius + radius + +radius * deltaTime);
+                    //    //Debug.Log("------Collider name:" + name + " dirMove:" + dirMove + " reflectVec:" + reflectVec + " posOld:" + posOld + " posCur:" + posCur + " normal:" + hit.normal + " hit:" + hit.point + " radius:" + radius);
+                    //    ItemBall itemBall = hit.collider.GetComponent<ItemBall>();
+                    //    if (itemBall != null)
+                    //    {
+                    //        Vector3 reflectVecOther = Vector3.Reflect(itemBall.dirMove, hit.normal);
+                    //        float velocityNew = Utilities.GetVelcoityAfterCollide(velocity, itemBall.velocity, mass, itemBall.mass);
+                    //        float velocityNewOther = Utilities.GetVelcoityAfterCollide(itemBall.velocity, velocity, itemBall.mass, mass);
+                    //        velocity = velocityNew;
+                    //        itemBall.velocity = velocityNewOther;
+                    //        itemBall.dirMove = reflectVecOther;
+                    //    }
+                    //    dirMove = reflectVec;
+
+
+                    //    Debug.DrawLine(posCur, posCur - (Vector2)dirMove * 100, Color.red, Time.fixedDeltaTime);
+                    //    Debug.DrawLine(posCur, posCur + (Vector2)hit.normal * 100, Color.yellow, Time.fixedDeltaTime);
+                    //    Debug.DrawLine(posCur, posCur + (Vector2)reflectVec * 100, Color.green, Time.fixedDeltaTime);
+                    //}
+                    if (hit.collider.tag == "ItemLine")
                     {
-
-                        //if (hit.collider.tag == "ItemBall" )
+                        ItemLine itemLine = hit.collider.GetComponent<ItemLine>();
+                        //Debug.Log("va cham ne:" + itemLine);
+                        //if (itemLine != null)
                         //{
-
-                        //    Vector3 reflectVec = Vector3.Reflect(dirMove, hit.normal);
-                        //    pointHit = new Vector2(hit.transform.position.x + hit.normal.x * (radius), hit.transform.position.y + hit.normal.y * (radius));
-                        //    //Debug.DrawLine(posOld - dirMove * 100, posCur, Color.red, Time.fixedDeltaTime);
-                        //    posCur.x = hit.transform.position.x + hit.normal.x * (radius + radius + radius*deltaTime);
-                        //    posCur.y = hit.transform.position.y + hit.normal.y * (radius + radius + +radius * deltaTime);
-                        //    //Debug.Log("------Collider name:" + name + " dirMove:" + dirMove + " reflectVec:" + reflectVec + " posOld:" + posOld + " posCur:" + posCur + " normal:" + hit.normal + " hit:" + hit.point + " radius:" + radius);
-                        //    ItemBall itemBall = hit.collider.GetComponent<ItemBall>();
-                        //    if (itemBall != null)
-                        //    {
-                        //        Vector3 reflectVecOther = Vector3.Reflect(itemBall.dirMove, hit.normal);
-                        //        float velocityNew = Utilities.GetVelcoityAfterCollide(velocity, itemBall.velocity, mass, itemBall.mass);
-                        //        float velocityNewOther = Utilities.GetVelcoityAfterCollide(itemBall.velocity, velocity, itemBall.mass, mass);
-                        //        velocity = velocityNew;
-                        //        itemBall.velocity = velocityNewOther;
-                        //        itemBall.dirMove = reflectVecOther;
-                        //    }
-                        //    dirMove = reflectVec;
-
-
-                        //    Debug.DrawLine(posCur, posCur - (Vector2)dirMove * 100, Color.red, Time.fixedDeltaTime);
-                        //    Debug.DrawLine(posCur, posCur + (Vector2)hit.normal * 100, Color.yellow, Time.fixedDeltaTime);
-                        //    Debug.DrawLine(posCur, posCur + (Vector2)reflectVec * 100, Color.green, Time.fixedDeltaTime);
+                        //    Debug.Log("cai gi nua day:"+itemLine.isCompleteSketching);
                         //}
-                        if (hit.collider.tag == "ItemLine")
+                        if (itemLine != null)
                         {
-                            ItemLine itemLine = hit.collider.GetComponent<ItemLine>();
-                            //Debug.Log("va cham ne:" + itemLine);
-                            //if (itemLine != null)
-                            //{
-                            //    Debug.Log("cai gi nua day:"+itemLine.isCompleteSketching);
-                            //}
-                            if (itemLine != null)
+                            if (itemLine.isCompleteSketching == false)
                             {
-                                if (itemLine.isCompleteSketching == false)
-                                {
-                                    GameplayController.Instance.EndGame(false);
-                                }
-                                else
-                                {
-                                    Vector3 reflectVec = Vector3.Reflect(dirMove, hit.normal);
-                                    pointHit = hit.point;
-                                    //Debug.DrawLine(posOld - dirMove * 100, posCur, Color.red, Time.fixedDeltaTime);
-                                    posCur.x = hit.point.x + hit.normal.x * (radius + radius * deltaTime);
-                                    posCur.y = hit.point.y + hit.normal.y * (radius + radius * deltaTime);
-                                    //Debug.Log("------Collider name:" + name + " dirMove:" + dirMove + " reflectVec:" + reflectVec + " posOld:" + posOld + " posCur:" + posCur + " normal:" + hit.normal + " hit:" + hit.point + " radius:" + radius);
-
-                                    dirMove = reflectVec;
-                                }
-
+                                GameplayController.Instance.EndGame(false);
                             }
                             else
                             {
@@ -140,19 +126,30 @@ public class ItemBall : MonoBehaviour
 
                                 dirMove = reflectVec;
                             }
-                            break;
-                            
+
                         }
-                       
+                        else
+                        {
+                            Vector3 reflectVec = Vector3.Reflect(dirMove, hit.normal);
+                            pointHit = hit.point;
+                            //Debug.DrawLine(posOld - dirMove * 100, posCur, Color.red, Time.fixedDeltaTime);
+                            posCur.x = hit.point.x + hit.normal.x * (radius + radius * deltaTime);
+                            posCur.y = hit.point.y + hit.normal.y * (radius + radius * deltaTime);
+                            //Debug.Log("------Collider name:" + name + " dirMove:" + dirMove + " reflectVec:" + reflectVec + " posOld:" + posOld + " posCur:" + posCur + " normal:" + hit.normal + " hit:" + hit.point + " radius:" + radius);
+
+                            dirMove = reflectVec;
+                        }
+                        break;
+
                     }
-                   
+
                 }
 
             }
-            transform.position = posCur;
-            posOld = posCur;
-        }
 
+        }
+        transform.position = posCur;
+        posOld = posCur;
     }
 
 

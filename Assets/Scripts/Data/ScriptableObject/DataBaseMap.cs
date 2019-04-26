@@ -10,5 +10,5 @@ public class DataBaseMap : ScriptableObject {
 
 [System.Serializable]
 public class DataBaseNode  {
-    public int numSketch = 10;
+    public int numSketch = 3;
 }

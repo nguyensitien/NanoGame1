@@ -5,11 +5,9 @@ using UnityEngine;
 public class UserDataNode  {
 
     public int idNode;
-    public int numStar;
-    public UserDataNode(int idNode,int numStar)
+    public UserDataNode(int idNode)
     {
         this.idNode = idNode;
-        this.numStar = numStar;
     }
     
 }
