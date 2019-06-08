@@ -6,14 +6,30 @@ public class InputHanlder : MonoBehaviour
 {
     [SerializeField]
     private Camera cam;
+
+    private Vector2 originPos;
+    private Vector2 endPos;
+
     void Update()
     {
         if (GameplayController.Instance.canCreateLine == false) return;
+        if (Input.GetMouseButtonDown(0)) {
+            originPos = Input.mousePosition;
+            originPos = cam.ScreenToWorldPoint(originPos);
+        }
         if (Input.GetMouseButtonUp(0))
         {
-            Vector3 posMouse = Input.mousePosition;
-            posMouse = cam.ScreenToWorldPoint(posMouse);
-            posMouse.z = 0;
+            endPos = Input.mousePosition;
+            endPos = cam.ScreenToWorldPoint(endPos);
+            Vector2 posMouse = originPos;
+
+
+            TypeLineFind typeSwipe = TypeLineFind.vertical;
+            if (Mathf.Abs(endPos.x - originPos.x) >= Mathf.Abs(endPos.y - originPos.y))
+            {
+                typeSwipe = TypeLineFind.horizontal;
+            }
+            
             for (int i = 0; i < GameplayController.Instance.pointsList.Count; i++)
             {
                 Vector2[] points = GameplayController.Instance.GetPointsBoard(i);
@@ -27,7 +43,7 @@ public class InputHanlder : MonoBehaviour
                         posMouse.y = Mathf.Ceil(posMouse.y);
                         posMouse = GameplayController.Instance.RoundPosCreateLine(i,(Vector2)posMouse);
                         GameplayController.Instance.indexMask = i;
-                        GameplayController.Instance.CreateLine(posMouse);
+                        GameplayController.Instance.CreateLine(typeSwipe,posMouse);
                     }
                 }
             }

@@ -56,12 +56,21 @@ public class DataController : SingletonDontDestroy<DataController> {
             if (userDataNodeList == null)
             {
                 userDataNodeList = new List<UserDataNode>();
-                userDataNodeList.Add(new UserDataNode(1,0));
+                userDataNodeList.Add(new UserDataNode(1));
             }
             int origin = userDataNodeList.Count;
+            int max = ObjectDataController.Instance.DataBaseMap.nodeList.Length;
             for (int i = origin; i <= UserData.idNodeHighest; i++)
             {
-                userDataNodeList.Add(new UserDataNode(i, 0));
+                if (i <= max - 1)
+                {
+                    userDataNodeList.Add(new UserDataNode(i));
+                }
+                else
+                {
+                    return userDataNodeList;
+                }
+                
             }
             return userDataNodeList;
         }

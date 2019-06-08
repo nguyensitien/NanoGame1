@@ -54,16 +54,7 @@ public class ItemUINode : MonoBehaviour {
                 starList[i].sprite = starLock;
                 starList[i].SetNativeSize();
             }
-            List<UserDataNode> list = DataController.Instance.UserDataNodeList;
-            if (idNode <= list.Count)
-            {
-                int length = list[idNode - 1].numStar;
-                for (int i = 0; i < length; i++)
-                {
-                    starList[i].sprite = starUnlock;
-                    starList[i].SetNativeSize();
-                }
-            }
+            
         }
 
         else
@@ -83,7 +74,7 @@ public class ItemUINode : MonoBehaviour {
             GameObject mapPrefab = Resources.Load<GameObject>("Maps/Node"+idNode);
             if (mapPrefab)
             {
-                ObjectDataController.Instance.idNodeFighting = idNode;
+                ObjectDataController.Instance.IdNodeFighting = idNode;
                 ObjectDataController.Instance.nodeMapFighting = mapPrefab;
                 SceneManager.LoadScene("Gameplay");
             }

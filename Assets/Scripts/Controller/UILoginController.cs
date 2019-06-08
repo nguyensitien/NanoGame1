@@ -26,7 +26,7 @@ public class UILoginController : Singleton<UILoginController> {
                 DOTween.To(() => splashList[index].alpha, (x) => splashList[index].alpha = x, 0, timeTween).SetEase(Ease.Linear).OnComplete(()=> {
                     if (index == splashList.Length - 1)
                     {
-                        SceneManager.LoadScene("Lobby");
+                        SceneManager.LoadScene("Gameplay");
                     }
                 });
             });
