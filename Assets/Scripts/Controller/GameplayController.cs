@@ -10,6 +10,8 @@ using UnityEngine.Tilemaps;
 public class GameplayController : Singleton<GameplayController>
 {
     [SerializeField]
+    private CanvasGroup csGroupBgBlack;
+    [SerializeField]
     private GameObject maskMapPrefab,ballTrailPrefab;
     public Vector2 sizeLine;
     [SerializeField]
@@ -63,7 +65,6 @@ public class GameplayController : Singleton<GameplayController>
 
     public void InitGame()
     {
-        Debug.Log("InitGame");
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
         //nodeMap = GameObject.Find("Node26");
         //GameObject mapPrefab = Resources.Load<GameObject>("Maps/Node" + 1);
@@ -320,17 +321,17 @@ public class GameplayController : Singleton<GameplayController>
    
 
     private bool isInited;
-    private IEnumerator InitTriangle()
+    private void InitTriangle()
     {
 
         InitPoints();
         List<Vector2[]> pointsListClone = ClonePointsList();
         List<Vector2[]> pointsBorderList = CreatePointsBorder(pointsListClone);
-        
+        //Debug.Log("pointsBorderList:" + pointsBorderList.Count);
         for (int i = 0; i < pointsBorderList.Count; i++)
         {
             Vector2[] pointsBorder = pointsBorderList[i];
-            //Debug.Log("InitTriangle:" + i+":"+pointsBorder.Length);
+            //Debug.Log("InitTriangle:" + i + ":" + pointsBorder.Length);
             if (pointsBorder.Length == 0) continue;
             Triangulator triangle = new Triangulator(pointsBorder);
             //test
@@ -344,7 +345,6 @@ public class GameplayController : Singleton<GameplayController>
             Vector2 ori = new Vector2(minXOri-sizeLine.x/2, minYOri- sizeLine.x / 2);
             for (int j = 0; j < pointsBorder.Length; j++)
             {
-                //Debug.Log("dasdas:"+j+":"+pointsBorder[j]+"-"+ori);
                 verticles[j] = (pointsBorder[j] - ori);
             }
             for (int j = 0; j < tris.Length; j++)
@@ -363,22 +363,21 @@ public class GameplayController : Singleton<GameplayController>
                     maskMapArr[j].gameObject.transform.position = new Vector2(center.x- sizeLine .x/ 4,center.y-sizeLine.x/4);
                     //for (int k = 0; k < verticles.Length; k++)
                     //{
-                    //    Debug.Log("verticle:" + k + ":" + verticles[k]);
+                    //    Debug.Log("verticle Init:" + k + ":" + verticles[k]);
                     //}
                     maskMapArr[j].sprite = spriteMask;
                     spriteMask.OverrideGeometry(verticles, tris);
 
                 }
-                yield break; ;
+                return;
             }
             
             Sprite spriteTmp = maskMapArr[i].sprite;
-            //for (int index = 0; index < verticles.Length; index++)
-            //{
-            //    Debug.Log("verticles:" + index + ":" + verticles[index]);
-            //}
-            //Debug.Log("width:" + width + " height:" + height + " center:" + center);
-            yield return null;
+            for (int index = 0; index < verticles.Length; index++)
+            {
+                Debug.Log("verticles:" + index + ":" + verticles[index]);
+            }
+            Debug.Log("width:" + width + " height:" + height + " center:" + center);
             spriteTmp.OverrideGeometry(verticles, tris);
         }
     }
@@ -432,6 +431,19 @@ public class GameplayController : Singleton<GameplayController>
                 Vector2 pTopLeft = new Vector2(pCenter.x - (sizeLine.x / 2), pCenter.y + (sizeLine.x / 2));
                 Vector2 pBotLeft = new Vector2(pCenter.x - (sizeLine.x / 2), pCenter.y - (sizeLine.x / 2));
                 Vector2 pBotRight = new Vector2(pCenter.x + (sizeLine.x / 2), pCenter.y - (sizeLine.x / 2));
+                //Debug.Log("Before pTopRight:" + pTopRight + " pCenter:" + pCenter);
+                //Debug.Log("Before pTopLeft:" + pTopLeft + " pCenter:" + pCenter);
+                //Debug.Log("Before pBotLeft:" + pBotLeft + " pCenter:" + pCenter);
+                //Debug.Log("Before pBotRight:" + pBotRight + " pCenter:" + pCenter);
+                //pTopRight = new Vector2(Mathf.FloorToInt(pTopRight.x), Mathf.FloorToInt(pTopRight.y));
+                //pTopLeft = new Vector2(Mathf.FloorToInt(pTopLeft.x), Mathf.FloorToInt(pTopLeft.y));
+                //pBotLeft = new Vector2(Mathf.FloorToInt(pBotLeft.x), Mathf.FloorToInt(pBotLeft.y));
+                //pBotRight = new Vector2(Mathf.FloorToInt(pBotRight.x), Mathf.FloorToInt(pBotRight.y));
+                //Debug.Log("After pTopRight:" + pTopRight + " pCenter:" + pCenter);
+                //Debug.Log("After pTopLeft:" + pTopLeft + " pCenter:" + pCenter);
+                //Debug.Log("After pBotLeft:" + pBotLeft + " pCenter:" + pCenter);
+                //Debug.Log("After pBotRight:" + pBotRight + " pCenter:" + pCenter);
+                //Debug.Log("****************");
                 List<Vector2> pointsOut = new List<Vector2>();
                 List<Vector2> pointsIn = new List<Vector2>();
                 if (Utilities.IsPointInPolygon(new Vector2(pCenter.x + padding, pCenter.y + padding), points))
@@ -517,6 +529,8 @@ public class GameplayController : Singleton<GameplayController>
 
     public void PlayGame()
     {
+        csGroupBgBlack.alpha = 0;
+        DOTween.To(() => csGroupBgBlack.alpha, (x) => csGroupBgBlack.alpha = x, 1, 0.5f).SetEase(Ease.Linear);
         StartCoroutine(PlayGameDelay());
     }
 
@@ -551,6 +565,7 @@ public class GameplayController : Singleton<GameplayController>
     private IDisposable iUpdateBall;
     private IEnumerator PlayGameDelay()
     {
+
         canCreateLine = false;
         for (int i = 0; i < arrItemBall.Length; i++)
         {
@@ -610,10 +625,12 @@ public class GameplayController : Singleton<GameplayController>
     private float GetAreaAll()
     {
         float result = 0.0f;
+        //Debug.Log("GetAreaAll:"+triangleList.Length);
         for (int i = 0; i < triangleList.Length; i++)
         {
             if (triangleList[i] != null)
             {
+                //Debug.Log("index:"+i+":"+triangleList[i].Area());
                 result += triangleList[i].Area();
             }
         }
@@ -621,7 +638,7 @@ public class GameplayController : Singleton<GameplayController>
     }
     private void InitItemMask()
     {
-        StartCoroutine(InitTriangle());
+        InitTriangle();
         
 
     }
@@ -753,7 +770,7 @@ public class GameplayController : Singleton<GameplayController>
                         
                         if (itemLineSketchingList[i].dir == -1)
                         {
-                            //Debug.Log("add new:" + i + " dir:" + itemLineSketchingList[i].dir + " point:" + pointsComplete[i]+":"+ TypeLine.line_bot_right);
+                            //Debug.Log("add new:" + i + " dir:" + itemLineSketchingList[i].dir + " point:" + pointsComplete[i] + ":" + TypeLine.line_bot_right);
                             itemLineInfoListTmp.Insert(0, new ItemLineInfo(pointsComplete[i], TypeLine.line_bot_right));
                         }
                         else
@@ -992,7 +1009,8 @@ public class GameplayController : Singleton<GameplayController>
 
     public void UpdatePoint()
     {
-        pointCur = originSizeBoard - (int)GetAreaAll();
+        int arenAll = (int)GetAreaAll();
+        pointCur = originSizeBoard - arenAll;
         pointCur = Mathf.Max(0, pointCur);
         UIGameplayController.Instance.UpdatePoint();
         if (pointCur >= pointTarget)
@@ -1037,7 +1055,7 @@ public class GameplayController : Singleton<GameplayController>
                 {
                    
                     itemLineInfoList[i] = new List<ItemLineInfo>(itemLineInfoListTmp);
-                    //Debug.Log("Create Board:" + i + ":" + itemLineInfoList[i].Count);
+                    //Debug.Log("Create Board:" + i + ":" + itemLineInfoList[i].Count+":"+itemLineInfoListTmp.Count);
                     InitItemMask();
                     maskMapArr[i].gameObject.SetActive(true);
                     return;
@@ -1351,8 +1369,9 @@ public class GameplayController : Singleton<GameplayController>
         {
             for (int i = 0; i < points.Length; i++)
             {
-                //Debug.Log("vertical:" + i + ":" + points[i] + ":" + posMouse);
-                if (Mathf.Abs(posMouse.x - points[i].x) <= sizeLine.x)
+                Debug.Log("vertical:" + i + ":" + points[i] + ":" + posMouse);
+                points[i].x = MathfExtension.FloorToInt(points[i].x);
+                if (Mathf.Abs(posMouse.x -  points[i].x) <= sizeLine.x)
                 {
                     //Debug.Log("RoundPosCreateLine:"+ new Vector2(points[i].x, posMouse.y));
                     return new Vector2(points[i].x, posMouse.y);

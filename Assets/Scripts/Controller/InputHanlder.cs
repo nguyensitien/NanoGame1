@@ -36,12 +36,15 @@ public class InputHanlder : MonoBehaviour
                 
                 if (points.Length > 0 && Utilities.IsPointInPolygon(posMouse, points))
                 {
-                    RaycastHit2D hit = Physics2D.BoxCast(posMouse, Vector2.one * GameplayController.Instance.sizeLine.x*2, 0, Vector2.zero, 0);
+                    RaycastHit2D hit = Physics2D.BoxCast(posMouse, Vector2.one * (GameplayController.Instance.sizeLine.x *2) , 0, Vector2.zero, 0);
                     if (hit.collider == null)
                     {
-                        posMouse.x = Mathf.Ceil(posMouse.x);
-                        posMouse.y = Mathf.Ceil(posMouse.y);
+                        posMouse.x = MathfExtension.FloorToInt(posMouse.x);
+                        posMouse.y = MathfExtension.FloorToInt(posMouse.y);
                         posMouse = GameplayController.Instance.RoundPosCreateLine(i,(Vector2)posMouse);
+                        posMouse.x = MathfExtension.FloorToInt(posMouse.x);
+                        posMouse.y = MathfExtension.FloorToInt(posMouse.y);
+                        Debug.Log("posMouse:"+posMouse);
                         GameplayController.Instance.indexMask = i;
                         GameplayController.Instance.CreateLine(typeSwipe,posMouse);
                     }
