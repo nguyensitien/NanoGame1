@@ -21,6 +21,9 @@ public class UIGameplayController : Singleton<UIGameplayController> {
     [SerializeField]
     private DOTweenAnimation tweenBtnSetting = null,tweenBtnShop = null,tweenBtnRemoveAd = null,tweenTxtTapToPlay,tweenBoxTop = null;
     private Vector2 posOriginTxtName;
+    [SerializeField]
+    private CanvasGroup csGroupBgBlack = null;
+
     private void Awake()
     {
         posOriginTxtName = rectTxtNameGame.anchoredPosition;
@@ -49,8 +52,10 @@ public class UIGameplayController : Singleton<UIGameplayController> {
         rectTxtNameGame.anchoredPosition = posOriginTxtName;
         bgClick.gameObject.SetActive(true);
     }
+
     public void EndGame(bool isWin)
     {
+        DOTween.To(() => csGroupBgBlack.alpha, (x) => csGroupBgBlack.alpha = x, 0, 0.5f).SetEase(Ease.Linear);
         if (isWin)
         {
 
@@ -70,6 +75,7 @@ public class UIGameplayController : Singleton<UIGameplayController> {
         imgPoint.DOFillAmount(percent,0.6f).SetEase(Ease.OutBack);
         txtPoint.text = Mathf.Min(100,(int)(percent*100))+"%";
     }
+
     public void OnClickPlay()
     {
         bgClick.gameObject.SetActive(false);
@@ -96,9 +102,11 @@ public class UIGameplayController : Singleton<UIGameplayController> {
 
     private IEnumerator DelayPlayGame()
     {
+        
         GameplayController.Instance.ShowAlphaAll();
         //yield return new WaitForSeconds(1);
         yield return null;
+        
         GameplayController.Instance.PlayGame();
     }
 

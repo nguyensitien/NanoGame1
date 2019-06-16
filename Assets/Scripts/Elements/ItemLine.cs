@@ -30,14 +30,20 @@ public class ItemLine : MonoBehaviour
             scaleCur = new Vector2(0, 1);
             hit = Physics2D.Linecast(transform.position, (Vector2)transform.position + Vector2.right * dir * 20000, layerMask);
             posTarget = hit.point;
-            posTarget.x += dir * GameplayController.Instance.sizeLine.x/2;
+            int posX = MathfExtension.FloorToInt(posTarget.x);
+            Debug.Log("posTarGetX:" + posTarget.x + " point:" + hit.point + " posX:" + posX + " POSTARGET:" + posTarget);
+
+            posTarget.x = posX + ((int)dir * GameConfig.SIZE_HALF_LINE);
         }
         else
         {
             scaleCur = new Vector2(1,0);
             hit = Physics2D.Linecast(transform.position, (Vector2)transform.position + Vector2.up * dir * 20000, layerMask);
             posTarget = hit.point;
-            posTarget.y += dir * GameplayController.Instance.sizeLine.x/2;
+            int posY = MathfExtension.FloorToInt(posTarget.y);
+            Debug.Log("posTarGetY:" + posTarget.x + " point:" + hit.point + " posY:" + posY + " POSTARGET:" + posTarget);
+            posTarget.y = posY +((int)dir * GameConfig.SIZE_HALF_LINE);
+            
         }
         //Debug.Log("hit:"+transform.position+"=>"+posTarget);
     }
@@ -59,6 +65,7 @@ public class ItemLine : MonoBehaviour
                 if (Mathf.Abs(scaleCur.y) >= Mathf.Abs((posTarget.y - transform.position.y) / 100.0f))
                 {
                     scaleCur.y = (posTarget.y - transform.position.y) / 100.0f;
+                    posTarget.y = MathfExtension.FloorToIntAbs(posTarget.y);
                     CompleteSketching(posTarget);
                 }
 
@@ -69,7 +76,9 @@ public class ItemLine : MonoBehaviour
                 if (Mathf.Abs(scaleCur.x) >= Mathf.Abs((posTarget.x - transform.position.x) / 100.0f))
                 {
                     scaleCur.x = (posTarget.x - transform.position.x) / 100.0f;
+                    posTarget.x = MathfExtension.FloorToIntAbs(posTarget.x);
                     CompleteSketching(posTarget);
+                    
                 }
             }
             transform.localScale = scaleCur;
@@ -92,8 +101,8 @@ public class ItemLineInfo
     public ItemLineInfo(Vector2 point,TypeLine typeLine)
     {
         this.point = point;
-        this.point.x = Mathf.Ceil(point.x);
-        this.point.y = Mathf.Ceil(point.y);
+        this.point.x = MathfExtension.FloorToIntAbs(point.x);
+        this.point.y = MathfExtension.FloorToIntAbs(point.y);
         this.typeLine = typeLine;
     }
 }

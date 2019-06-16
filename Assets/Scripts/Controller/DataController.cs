@@ -98,9 +98,11 @@ public class DataController : SingletonDontDestroy<DataController> {
         bi.Serialize(file,UserDataNodeList);
         file.Close();
     }
-    private void OnApplicationQuit()
+
+    private void OnApplicationFocus(bool focus)
     {
         SaveUserData();
         SaveUserDataNodeList();
     }
+  
 }
